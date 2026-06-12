@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "declaration": true,
+    "declarationMap": true,
+    "exactOptionalPropertyTypes": true,
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    "noUncheckedIndexedAccess": true,
+    "paths": {
+      "avirx": [
+        "./src/index.ts"
+      ]
+    },
+    "rootDir": ".",
+    "strict": true,
+    "target": "ES2022",
+    "types": [
+      "node"
+    ],
+    "verbatimModuleSyntax": true
+  },
+  "include": [
+    "examples",
+    "scripts",
+    "src",
+    "tests",
+    "vitest.config.ts",
+    "eslint.config.js"
+  ]
+}
