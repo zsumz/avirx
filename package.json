@@ -1,0 +1,62 @@
+{
+  "name": "avirx",
+  "version": "0.1.0",
+  "description": "A TypeScript toolkit for fluent API requests.",
+  "type": "module",
+  "license": "MIT",
+  "author": "zsumz <shawn@zsumz.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zsumz/avirx.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zsumz/avirx/issues"
+  },
+  "homepage": "https://github.com/zsumz/avirx#readme",
+  "keywords": [
+    "http",
+    "fetch",
+    "client",
+    "typescript",
+    "fluent-api",
+    "runtime-validation"
+  ],
+  "engines": {
+    "node": ">=18.17"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:archive-source": "tsx scripts/source-archive.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "smoke:browser": "node scripts/browser-smoke.mjs",
+    "smoke:package": "node scripts/package-smoke.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.3",
+    "@vitest/coverage-v8": "^4.1.8",
+    "eslint": "^10.6.0",
+    "eslint-config-rubric": "^0.1.0-alpha.0",
+    "tsx": "^4.22.4",
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.8",
+    "zod": "^4.4.3"
+  }
+}
