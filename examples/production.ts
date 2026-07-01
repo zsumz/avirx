@@ -149,7 +149,7 @@ function createProductionMockApi(): {
         }));
 
         if (url.pathname === '/slow') {
-            return Promise.resolve(jsonResponse({ id: 'slow', title: 'Slow response' }));
+            return Promise.resolve(jsonResponse({ id: 'slow', title: 'Slow catalog response' }));
         }
 
         if (method === 'GET' && url.pathname === '/public/books/book_cache') {

@@ -34,7 +34,7 @@ export function createMockApi(): MockApi {
             return Promise.resolve(
                 jsonResponse({
                     items: books,
-                    status: url.searchParams.get('status') ?? 'all',
+                    shelf: url.searchParams.get('shelf') ?? 'all',
                 }),
             );
         }

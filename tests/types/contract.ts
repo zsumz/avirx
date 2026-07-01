@@ -41,7 +41,7 @@ type GetBookOutput = AvirxContractOutput<typeof getBook>;
 
 const input: GetBookInput = {
     path: { id: 'book_123' },
-    query: { include: ['events'] },
+    query: { include: ['reviews'] },
 };
 const output: Promise<GetBookOutput> = api.getBook(input);
 const result: Promise<AvirxResult<GetBookOutput>> = api.getBook.result(input);
@@ -50,7 +50,7 @@ const created: Promise<{ id: string; title: string }> = api.createBook({
 });
 
 // @ts-expect-error Contract path input is required for the endpoint params schema.
-void api.getBook({ query: { include: ['events'] } });
+void api.getBook({ query: { include: ['reviews'] } });
 
 // @ts-expect-error Contract query input must match the endpoint query schema.
 void api.getBook({ path: { id: 'book_123' }, query: { include: [123] } });

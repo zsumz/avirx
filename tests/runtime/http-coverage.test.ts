@@ -58,7 +58,7 @@ describe('real HTTP coverage', () => {
         const data = await avirx(server.origin)
             .get('/encoded/{name}/{value}?existing=1')
             .path({ name: 'a b', value: 'slash/value' })
-            .query({ omitted: null, tag: ['api', 'paperback'] })
+            .query({ omitted: null, tag: ['fiction', 'paperback'] })
             .json<{
             existing: string;
             omitted: boolean;
@@ -70,7 +70,7 @@ describe('real HTTP coverage', () => {
             existing: '1',
             omitted: false,
             pathname: '/encoded/a%20b/slash%2Fvalue',
-            tags: ['api', 'paperback'],
+            tags: ['fiction', 'paperback'],
         });
     });
 

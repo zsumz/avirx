@@ -57,7 +57,7 @@ const definition: AvirxEndpointDefinition<'GET', '/books/{id}'> = endpoint.get('
 const method: 'GET' = getBook.state.method;
 const path: '/books/{id}' = getBook.state.path;
 const params = getBook.state.paramsSchema.parse({ id: 'book_123' });
-const query = getBook.state.querySchema.parse({ include: ['comments'] });
+const query = getBook.state.querySchema.parse({ include: ['reviews'] });
 const body = createBook.state.bodySchema.parse({ title: 'The Left Hand of Darkness' });
 const book: EndpointResponse = getBook.state.responseSchema.parse({
     id: 'book_123',

@@ -4,7 +4,7 @@ import { createMockApi, type ExampleBook } from './mock-api.js';
 
 export type SimpleExampleResult = Readonly<{
     items: readonly ExampleBook[];
-    status: string;
+    shelf: string;
 }>;
 
 export async function runSimpleExample(): Promise<SimpleExampleResult> {

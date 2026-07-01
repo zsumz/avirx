@@ -56,14 +56,14 @@ describe('client contracts', () => {
 
         const book = await api.createBook({
             body: { title: 'The Left Hand of Darkness' },
-            query: { tag: ['paperback', 'api'] },
+            query: { tag: ['fiction', 'paperback'] },
         });
 
         expect(book).toEqual({ id: 'book_123', title: 'The Left Hand of Darkness' });
-        expect(QuerySchema.parse).toHaveBeenCalledWith({ tag: ['paperback', 'api'] });
+        expect(QuerySchema.parse).toHaveBeenCalledWith({ tag: ['fiction', 'paperback'] });
         expect(BodySchema.parse).toHaveBeenCalledWith({ title: 'The Left Hand of Darkness' });
         expect(fetchImpl).toHaveBeenCalledWith(
-            new URL('https://api.example.com/books?tag=paperback&tag=api'),
+            new URL('https://api.example.com/books?tag=fiction&tag=paperback'),
             expect.objectContaining({
                 body: JSON.stringify({ title: 'The Left Hand of Darkness' }),
                 method: 'POST',
@@ -83,7 +83,7 @@ describe('client contracts', () => {
             search: endpoint.get('/search').query(QuerySchema),
         });
 
-        await expect(api.search({ query: { tag: 'paperback' } })).rejects.toBe(cause);
+        await expect(api.search({ query: { tag: 'fiction' } })).rejects.toBe(cause);
         expect(fetchImpl).not.toHaveBeenCalled();
     });
 

@@ -46,7 +46,7 @@ const api = avirx('https://api.example.com');
 const request = api
     .get('/books/{id}')
     .path({ id: 'book_123' })
-    .query({ include: ['events', 'owner'] });
+    .query({ include: ['author', 'reviews'] });
 
 console.log(await request.preview());
 console.log(await request.curl());
