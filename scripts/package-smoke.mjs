@@ -17,7 +17,7 @@ try {
   run("npm", ["run", "build"], { cwd: root });
 
   log("Packing package");
-  const pack = run("npm", ["pack", "--pack-destination", temp, "--json"], { cwd: root });
+  const pack = run("npm", ["pack", "--pack-destination", temp, "--json"], { cwd: root, env: npmEnv() });
   const [packed] = JSON.parse(pack.stdout);
   assert(packed && typeof packed.filename === "string", "npm pack did not report a tarball filename.");
   assert(Array.isArray(packed.files), "npm pack did not report packed files.");
@@ -29,7 +29,9 @@ try {
 
   for (const path of [
     "package.json",
+    "README.md",
     "LICENSE",
+    "avirx-logo.svg",
     "dist/index.js",
     "dist/index.d.ts",
     "dist/client.js",

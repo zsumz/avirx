@@ -30,7 +30,8 @@
   },
   "sideEffects": false,
   "files": [
-    "dist"
+    "dist",
+    "avirx-logo.svg"
   ],
   "exports": {
     ".": {
