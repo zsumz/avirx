@@ -29,7 +29,7 @@
     </style>
   </defs>
   <rect width="1040" height="380" fill="#ffffff"/>
-  <g transform="translate(434 20) scale(0.98)">
+  <g transform="translate(434 -4) scale(0.98)">
     <rect x="25" y="25" width="126" height="126" rx="32" fill="#eefaff" stroke="#131927" stroke-width="10"/>
     <path d="M52 88H122" stroke="#18a3b4" stroke-width="10" stroke-linecap="round"/>
     <path d="m113 74 16 14-16 14" stroke="#18a3b4" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
