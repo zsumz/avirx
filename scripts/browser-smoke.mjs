@@ -17,7 +17,7 @@ try {
   run("npm", ["run", "build"], { cwd: root });
 
   log("Packing package");
-  const pack = run("npm", ["pack", "--pack-destination", temp, "--json"], { cwd: root });
+  const pack = run("npm", ["pack", "--pack-destination", temp, "--json"], { cwd: root, env: npmEnv() });
   const [packed] = JSON.parse(pack.stdout);
   assert(packed && typeof packed.filename === "string", "npm pack did not report a tarball filename.");
 
