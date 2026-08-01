@@ -20,6 +20,19 @@ describe('source architecture', () => {
         expect(existsSync(resolve(REPO_ROOT, 'src/internals/model.ts'))).toBe(false);
     });
 
+    it('keeps contract calls, request preparation, and validation independently owned', () => {
+        expectModules([
+            'src/contract/create-contract-call.ts',
+            'src/contract/create-contract-client.ts',
+            'src/contract/prepare-contract-request.ts',
+            'src/contract/validate-contract-body.ts',
+            'src/contract/validate-contract-path.ts',
+            'src/contract/validate-contract-query.ts',
+        ]);
+        expect(readText('src/contract/create-contract-client.ts')).not.toContain('parseWithSchema');
+        expect(readText('src/contract/prepare-contract-request.ts')).not.toContain('Object.assign');
+    });
+
     it('keeps execution orchestration split by responsibility', () => {
         expectModules([
             'src/execution/attempt.ts',

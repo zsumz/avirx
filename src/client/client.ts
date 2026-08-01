@@ -7,7 +7,7 @@ import {
 import { createCachePolicy } from '../policy/cache/cache.js';
 import { createConcurrencyLimiter } from '../policy/concurrency/concurrency.js';
 import { normalizeDurationMs } from '../time/duration.js';
-import { createContractClient } from '../contract/contract.js';
+import { createContractClient } from '../contract/create-contract-client.js';
 import { normalizeHeader, normalizeHeaders } from '../transport/headers.js';
 import { appendHook } from '../policy/hooks/hooks.js';
 import { createClientState, forkClientState } from './state/client-state.js';
