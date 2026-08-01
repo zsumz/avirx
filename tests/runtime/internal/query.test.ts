@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { appendQuery, normalizeQuery, serializeQuery } from '../../../src/internals/query.js';
+import { appendQuery, normalizeQuery, serializeQuery } from '../../../src/transport/query.js';
 
 describe('query utilities', () => {
     it('serializes arrays as repeated params and omits nullish values', () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { createRateLimitQueue, type RateLimitQueueEntry } from '../../src/internals/rate-limit-queue.js';
-import { createRateLimitWindow } from '../../src/internals/rate-limit-window.js';
+import { createRateLimitQueue, type RateLimitQueueEntry } from '../../src/policy/rate-limit/queue.js';
+import { createRateLimitWindow } from '../../src/policy/rate-limit/window.js';
 
 describe('rate limit internals', () => {
     it('tracks rolling-window capacity and delay', () => {

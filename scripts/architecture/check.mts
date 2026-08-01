@@ -9,6 +9,8 @@ import {
 } from './dependency/runtime-dependencies.mts';
 import { collectModuleFiles, relativePath } from './files/module-files.mts';
 import { inspectModuleLayout } from './module/module-layout.mts';
+import { inspectSourceDomains } from './module/source-domains.mts';
+import { inspectSourceFacade } from './module/source-facades.mts';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const ownedRoots = ['examples', 'scripts', 'src', 'tests'];
@@ -35,21 +37,24 @@ async function inspectArchitecture(): Promise<string[]> {
         const relative = relativePath(root, file);
         const source = await readFile(file, 'utf8');
         inspections.push(...inspectModuleLayout(relative, countLines(source)));
+        inspections.push(...inspectSourceFacade(relative, source));
         inspections.push(...inspectLineWidths(relative, source));
     }
     inspections.push(...inspectDebtPaths(relativeFiles));
     inspections.push(...await inspectPublicEntrypoint(root));
-    inspections.push(...await inspectCycles(files));
+    inspections.push(...await inspectSourceDependencies(files));
     return inspections;
 }
 
-async function inspectCycles(ownedFiles: readonly string[]): Promise<string[]> {
+async function inspectSourceDependencies(ownedFiles: readonly string[]): Promise<string[]> {
     const sourceFiles = ownedFiles.filter((file) => file.includes(`${path.sep}src${path.sep}`));
     const graph = await createRuntimeDependencyGraph(sourceFiles);
-    return findDependencyCycles(graph).map((cycle) => {
+    const failures = inspectSourceDomains(root, graph);
+    failures.push(...findDependencyCycles(graph).map((cycle) => {
         const relativeCycle = cycle.map((file) => relativePath(root, file));
         return `src: circular runtime dependency ${relativeCycle.join(' -> ')}`;
-    });
+    }));
+    return failures;
 }
 
 function inspectLineWidths(relative: string, source: string): string[] {

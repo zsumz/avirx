@@ -5,6 +5,7 @@ import {
     rootSourceDebt,
 } from '../config/layout-debt.mts';
 import { lineDebt } from '../config/line-debt.mts';
+import { rootSourceFacades } from './source-facades.mts';
 
 export const moduleLineLimit = 150;
 
@@ -68,7 +69,10 @@ function inspectSourcePlacement(relative: string): string[] {
     if (path.posix.basename(relative) === 'index.ts' && relative !== 'src/index.ts') {
         return [`${relative}: nested source index modules are forbidden.`];
     }
-    if (path.posix.dirname(relative) !== 'src' || relative === 'src/index.ts') {
+    if (
+        path.posix.dirname(relative) !== 'src'
+        || rootSourceFacades.has(relative)
+    ) {
         return [];
     }
     return rootSourceDebt.has(relative)

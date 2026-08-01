@@ -1,4 +1,4 @@
-import type { AvirxError } from '../errors.js';
+import type { AvirxError } from '../error/avirx-error.js';
 import type { AvirxHeaders } from './common.js';
 import type { AvirxBuiltRequest } from './request.js';
 import type { AvirxRetryEvent } from './policy.js';

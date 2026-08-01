@@ -34,10 +34,10 @@ try {
     "avirx-logo.svg",
     "dist/index.js",
     "dist/index.d.ts",
-    "dist/client.js",
-    "dist/request-builder.js",
-    "dist/contract.js",
-    "dist/endpoint.js",
+    "dist/client/client.js",
+    "dist/request/request-builder.js",
+    "dist/contract/contract.js",
+    "dist/contract/endpoint.js",
   ]) {
     assert(packedFiles.has(path), `Packed package is missing ${path}.`);
   }

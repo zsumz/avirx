@@ -1,4 +1,4 @@
-import type { AvirxError } from '../errors.js';
+import type { AvirxError } from '../error/avirx-error.js';
 import type { AvirxBuiltRequest } from './request.js';
 import type { AvirxResponse } from './response.js';
 import type { AvirxDurationInput } from './common.js';

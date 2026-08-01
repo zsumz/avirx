@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateRetryDelayMs, normalizeRetry } from '../../../src/internals/retry.js';
+import { calculateRetryDelayMs, normalizeRetry } from '../../../src/policy/retry/retry.js';
 
 describe('retry utilities', () => {
     it('normalizes retry inputs with deterministic backoff', () => {

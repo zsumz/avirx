@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createReadonlySet, freezeRecord } from '../../../src/internals/freeze.js';
+import { createReadonlySet, freezeRecord } from '../../../src/state/freeze.js';
 
 describe('freeze utilities', () => {
     it('copies and freezes records', () => {

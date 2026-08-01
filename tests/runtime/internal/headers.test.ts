@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeHeaders } from '../../../src/internals/headers.js';
-import { isSensitiveHeader, redactHeaders } from '../../../src/internals/redact.js';
+import { normalizeHeaders } from '../../../src/transport/headers.js';
+import { isSensitiveHeader, redactHeaders } from '../../../src/transport/redact.js';
 
 describe('header utilities', () => {
     it('normalizes header names to lowercase and freezes the result', () => {

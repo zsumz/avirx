@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeDurationMs } from '../../../src/internals/duration.js';
+import { normalizeDurationMs } from '../../../src/time/duration.js';
 
 describe('duration utilities', () => {
     it('normalizes milliseconds and seconds', () => {

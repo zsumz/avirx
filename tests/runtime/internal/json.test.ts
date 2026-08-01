@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isJsonContentType } from '../../../src/internals/json.js';
+import { isJsonContentType } from '../../../src/transport/json.js';
 
 describe('JSON utilities', () => {
     it('detects JSON media types', () => {

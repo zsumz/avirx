@@ -5,17 +5,17 @@ import { relative, resolve } from 'node:path';
 describe('source architecture', () => {
     it('keeps cache policy internals split by responsibility', () => {
         const expectedModules = [
-            'src/internals/cache-keys.ts',
-            'src/internals/cache-options.ts',
-            'src/internals/cache-response.ts',
-            'src/internals/cache-store.ts',
+            'src/policy/cache/keys.ts',
+            'src/policy/cache/options.ts',
+            'src/policy/cache/response.ts',
+            'src/policy/cache/store.ts',
         ];
 
         for (const modulePath of expectedModules) {
             expect(readText(modulePath).length, modulePath).toBeGreaterThan(0);
         }
 
-        const facade = readText('src/internals/cache.ts');
+        const facade = readText('src/policy/cache/cache.ts');
         expect(facade).not.toContain('normalizeDurationMs');
         expect(facade).not.toContain('JSON.stringify(parts)');
         expect(facade).not.toContain('response.native.clone().arrayBuffer()');

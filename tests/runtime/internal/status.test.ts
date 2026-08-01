@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isExpectedStatus, normalizeExpectedStatuses } from '../../../src/internals/status.js';
+import { isExpectedStatus, normalizeExpectedStatuses } from '../../../src/transport/status.js';
 
 describe('status utilities', () => {
     it('normalizes expected statuses', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractPathParamNames, interpolatePath, joinUrl } from '../../../src/internals/url.js';
+import { extractPathParamNames, interpolatePath, joinUrl } from '../../../src/transport/url.js';
 
 describe('URL utilities', () => {
     it('joins base URL paths with relative routes', () => {

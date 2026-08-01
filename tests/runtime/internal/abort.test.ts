@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createAbortScope, createRequestFailureMessage } from '../../../src/internals/abort.js';
+import { createAbortScope, createRequestFailureMessage } from '../../../src/transport/abort.js';
 
 describe('abort utilities', () => {
     it('composes abort signals while preserving the abort reason', () => {

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { createCacheKey, hasSensitiveHeaders } from '../../src/internals/cache-keys.js';
-import { isCachedResponse } from '../../src/internals/cache-response.js';
-import { createCacheStore } from '../../src/internals/cache-store.js';
+import { createCacheKey, hasSensitiveHeaders } from '../../src/policy/cache/keys.js';
+import { isCachedResponse } from '../../src/policy/cache/response.js';
+import { createCacheStore } from '../../src/policy/cache/store.js';
 import type { AvirxBuiltRequest, AvirxResponse } from '../../src/types.js';
 
 describe('cache internals', () => {

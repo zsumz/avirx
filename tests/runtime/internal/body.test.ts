@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { classifyBody, shouldEncodeJson } from '../../../src/internals/body.js';
+import { classifyBody, shouldEncodeJson } from '../../../src/transport/body.js';
 
 describe('body utilities', () => {
     it('classifies empty, text, form, binary, stream, and JSON bodies', () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { cloneFormData, prepareBodyState } from '../../../src/internals/body-state.js';
-import { createRequestState } from '../../../src/internals/model.js';
+import { cloneFormData, prepareBodyState } from '../../../src/transport/body-state.js';
+import { createRequestState } from '../../../src/request/state/request-state.js';
 
 describe('body state utilities', () => {
     it('serializes JSON bodies and adds content-type only when absent', () => {

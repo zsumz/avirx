@@ -1,8 +1,8 @@
-export { avirx } from './client.js';
-export { formatCurl } from './curl.js';
-export { AvirxError, isAvirxError } from './errors.js';
-export { endpoint } from './endpoint.js';
-export { parseWithSchema } from './schema.js';
+export { avirx } from './client/client.js';
+export { formatCurl } from './request/curl.js';
+export { AvirxError, isAvirxError } from './error/avirx-error.js';
+export { endpoint } from './contract/endpoint.js';
+export { parseWithSchema } from './contract/schema.js';
 export type {
     AvirxAuthBuilder,
     AvirxAuthPolicy,
