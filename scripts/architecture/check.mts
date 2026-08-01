@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { inspectDebtPaths } from './config/inspect-debt.mts';
 import { inspectPublicEntrypoint } from './contract/public-entrypoint.mts';
+import { inspectPublicSymbols } from './contract/public-symbols.mts';
 import {
     createRuntimeDependencyGraph,
     findDependencyCycles,
@@ -42,6 +43,7 @@ async function inspectArchitecture(): Promise<string[]> {
     }
     inspections.push(...inspectDebtPaths(relativeFiles));
     inspections.push(...await inspectPublicEntrypoint(root));
+    inspections.push(...await inspectPublicSymbols(root));
     inspections.push(...await inspectSourceDependencies(files));
     return inspections;
 }
