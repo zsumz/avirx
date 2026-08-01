@@ -41,8 +41,12 @@
   },
   "types": "./dist/index.d.ts",
   "scripts": {
+    "architecture:check": "tsx scripts/architecture/check.mts",
     "build": "node scripts/build.mjs",
     "build:archive-source": "tsx scripts/source-archive.ts",
+    "check": "npm run check:code && npm test && npm run check:package",
+    "check:code": "npm run typecheck && npm run lint && npm run architecture:check",
+    "check:package": "npm run build && npm run smoke:package && npm run smoke:browser",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
