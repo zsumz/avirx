@@ -42,7 +42,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "architecture:check": "tsx scripts/architecture/check.mts",
-    "build": "node scripts/build.mjs",
+    "build": "tsx scripts/build.mts",
     "build:archive-source": "tsx scripts/source-archive.ts",
     "check": "npm run check:code && npm test && npm run check:package",
     "check:code": "npm run typecheck && npm run lint && npm run architecture:check",
@@ -51,8 +51,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint .",
-    "smoke:browser": "node scripts/browser-smoke.mjs",
-    "smoke:package": "node scripts/package-smoke.mjs"
+    "smoke:browser": "tsx scripts/browser-smoke.mts",
+    "smoke:package": "tsx scripts/package-smoke.mts"
   },
   "devDependencies": {
     "@types/node": "^24.0.3",
