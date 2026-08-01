@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { buildRequest } from '../../src/request/build-request.js';
 import { createClientState } from '../../src/client/state/client-state.js';
 import { createRequestState } from '../../src/request/state/request-state.js';
-import { createAvirxResponse, parseJsonSafely, parseTextSafely } from '../../src/response/response.js';
+import { createAvirxResponse } from '../../src/response/create-response.js';
+import { readJsonResponse, readTextResponse } from '../../src/response/read-response.js';
 
 describe('AvirxResponse wrapper', () => {
     it('wraps the native response with stable metadata', () => {
@@ -36,7 +37,7 @@ describe('AvirxResponse wrapper', () => {
     it('provides safe internal parse helpers', async () => {
         const response = new Response(JSON.stringify({ ok: true }));
 
-        await expect(parseJsonSafely(response)).resolves.toEqual({ ok: true });
-        await expect(parseTextSafely(response)).resolves.toBe('{"ok":true}');
+        await expect(readJsonResponse(response)).resolves.toEqual({ ok: true });
+        await expect(readTextResponse(response)).resolves.toBe('{"ok":true}');
     });
 });

@@ -1,10 +1,9 @@
 import { AvirxError } from '../error/avirx-error.js';
 import { createAbortScope, delay } from '../transport/abort.js';
 import { mergeHooks, runHooks } from '../policy/hooks/hooks.js';
-import { calculateRetryDelayMs, canRetryMethod } from '../policy/retry/retry.js';
-import { isExpectedStatus } from '../transport/status.js';
 import { executeRequestAttempt } from './attempt.js';
 import { createHookContext, runErrorHooks } from './hooks.js';
+import { createRetryEvent, shouldRetryResponse } from './retry-decision.js';
 import type {
     AvirxClientState,
     AvirxRequestState,
@@ -24,30 +23,12 @@ export async function executeRequest(
     try {
         for (;;) {
             const response = await executeRequestAttempt(clientState, state, retryEvents, hooks, externalAbort.signal);
-            const retry = response.request.retry;
-
-            if (!retry || attempt >= retry.attempts) {
-                return response;
-            }
-
-            if (isExpectedStatus(response.status, state.expectedStatuses)) {
-                return response;
-            }
-
-            if (!retry.on.includes(response.status)) {
-                return response;
-            }
-
-            if (!canRetryMethod(response.request.method, retry) || !canReplayBody(response.request)) {
+            if (!shouldRetryResponse(response, state, attempt)) {
                 return response;
             }
 
             attempt += 1;
-            const event = Object.freeze({
-                attempt,
-                delayMs: calculateRetryDelayMs(attempt, response.headers['retry-after']),
-                status: response.status,
-            });
+            const event = createRetryEvent(attempt, response);
             retryEvents.push(event);
             await runHooks(hooks, 'retry', createHookContext(response.request, { response, retry: event }));
             try {
@@ -62,12 +43,4 @@ export async function executeRequest(
     } finally {
         externalAbort.cancel();
     }
-}
-
-function canReplayBody(request: AvirxResponse['request']): boolean {
-    if (!('body' in request)) {
-        return true;
-    }
-
-    return request.bodyMetadata.kind !== 'form' && request.bodyMetadata.kind !== 'stream';
 }

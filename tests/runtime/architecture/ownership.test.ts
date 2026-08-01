@@ -24,13 +24,18 @@ describe('source architecture', () => {
         expectModules([
             'src/execution/attempt.ts',
             'src/execution/cache.ts',
+            'src/execution/complete-attempt.ts',
             'src/execution/errors.ts',
+            'src/execution/execute-expected-request.ts',
+            'src/execution/fetch-init.ts',
             'src/execution/hooks.ts',
+            'src/execution/request-budget.ts',
             'src/execution/retry.ts',
+            'src/execution/retry-decision.ts',
         ]);
-        expect(readText('src/execution/orchestration.ts')).not.toContain('fetchImpl');
+        expect(readText('src/execution/execute-expected-request.ts')).not.toContain('fetchImpl');
         expect(readText('src/execution/retry.ts')).toContain('executeRequestAttempt');
-        expect(readText('src/execution/attempt.ts')).toContain('createFetchInit');
+        expect(readText('src/execution/fetch-init.ts')).toContain('toFetchBody');
     });
 
     it('keeps rate-limit queue and window mechanics split by responsibility', () => {

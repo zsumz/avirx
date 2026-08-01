@@ -1,11 +1,9 @@
-import { executeDownload } from '../response/download.js';
-import {
-    executeAs,
-    executeJson,
-    executeResult,
-    executeSend,
-    executeText,
-} from '../response/terminals.js';
+import { executeAs } from '../response/execute-as.js';
+import { executeDownload } from '../response/execute-download.js';
+import { executeJson } from '../response/execute-json.js';
+import { executeResult } from '../response/execute-result.js';
+import { executeSend } from '../response/execute-send.js';
+import { executeText } from '../response/execute-text.js';
 import type { RequestBuilderContext } from './request-builder-context.js';
 import type { AvirxResult, AvirxSchema } from '../types.js';
 

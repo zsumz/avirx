@@ -1,5 +1,5 @@
 import { AvirxError } from '../error/avirx-error.js';
-import { parseJsonSafely } from '../response/response.js';
+import { readJsonResponse } from '../response/read-response.js';
 import { parseWithSchema } from '../contract/schema.js';
 import type { AvirxResponse, AvirxSchema } from '../types.js';
 
@@ -36,5 +36,5 @@ export async function readJsonBody(response: AvirxResponse): Promise<unknown> {
         return undefined;
     }
 
-    return parseJsonSafely(response.native);
+    return readJsonResponse(response.native);
 }

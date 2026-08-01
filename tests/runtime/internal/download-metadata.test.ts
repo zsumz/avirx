@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { parseContentDispositionFilename, parseContentLength } from '../../../src/response/download.js';
+import { parseContentDispositionFilename } from '../../../src/response/content-disposition.js';
+import { parseContentLength } from '../../../src/response/content-length.js';
 
 describe('download utilities', () => {
     it('parses safe content length headers', () => {

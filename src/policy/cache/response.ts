@@ -1,4 +1,4 @@
-import { createAvirxResponse } from '../../response/response.js';
+import { createAvirxResponse } from '../../response/create-response.js';
 import { normalizeHeaders } from '../../transport/headers.js';
 import type { AvirxBuiltRequest, AvirxHeaders, AvirxResponse } from '../../types.js';
 
