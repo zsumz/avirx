@@ -13,7 +13,7 @@ import { appendHook } from '../policy/hooks/hooks.js';
 import { createClientState, forkClientState } from './state/client-state.js';
 import { createRateLimitLimiter } from '../policy/rate-limit/rate-limit.js';
 import { normalizeRetry } from '../policy/retry/retry.js';
-import { createRequestBuilder } from '../request/request-builder.js';
+import { createRequestBuilder } from '../request/create-request-builder.js';
 import type {
     AvirxAuthTokenProvider,
     AvirxClient,

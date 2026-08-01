@@ -1,4 +1,6 @@
-import { buildRequest, toFetchBody } from '../request/built-request.js';
+import { buildRequest } from '../request/build-request.js';
+import { resolveEffectiveAuth } from '../request/effective-auth.js';
+import { toFetchBody } from '../request/fetch-body.js';
 import { AvirxError } from '../error/avirx-error.js';
 import {
     createAbortScope,
@@ -6,13 +8,10 @@ import {
     createTimeoutSignal,
     throwIfAborted,
 } from '../transport/abort.js';
-import { resolveAuthHeaders } from '../policy/auth/auth.js';
-import { getRawAuthPolicy } from '../policy/auth/state-redaction.js';
 import { createAvirxResponse } from '../response/response.js';
 import { createHookContext, runErrorHooks } from './hooks.js';
 import { runHooks } from '../policy/hooks/hooks.js';
 import type {
-    AvirxAuthPolicy,
     AvirxClientState,
     AvirxHookRegistry,
     AvirxRequestState,
@@ -30,7 +29,7 @@ export async function executeRequestAttempt(
     const built = buildRequest(
         clientState,
         state,
-        await resolveAuthHeaders(getEffectiveAuthPolicy(clientState, state)),
+        await resolveEffectiveAuth(clientState, state),
     );
     const fetchImpl = clientState.fetch ?? globalThis.fetch;
     let release: () => void = noop;
@@ -95,13 +94,6 @@ export async function executeRequestAttempt(
     );
     await runHooks(hooks, 'response', createHookContext(built, { response }));
     return response;
-}
-
-function getEffectiveAuthPolicy(
-    clientState: AvirxClientState,
-    state: AvirxRequestState,
-): AvirxAuthPolicy | undefined {
-    return getRawAuthPolicy(state) ?? getRawAuthPolicy(clientState);
 }
 
 function createFetchInit(

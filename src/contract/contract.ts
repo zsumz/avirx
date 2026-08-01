@@ -1,4 +1,4 @@
-import { createRequestBuilder } from '../request/request-builder.js';
+import { createRequestBuilder } from '../request/create-request-builder.js';
 import { parseWithSchema } from './schema.js';
 import { extractPathParamNames } from '../transport/url.js';
 import type {

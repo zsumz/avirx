@@ -35,7 +35,7 @@ try {
     "dist/index.js",
     "dist/index.d.ts",
     "dist/client/client.js",
-    "dist/request/request-builder.js",
+    "dist/request/create-request-builder.js",
     "dist/contract/contract.js",
     "dist/contract/endpoint.js",
   ]) {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildRequest } from '../../src/request/built-request.js';
+import { buildRequest } from '../../src/request/build-request.js';
 import { createClientState } from '../../src/client/state/client-state.js';
 import { createRequestState } from '../../src/request/state/request-state.js';
 import { createAvirxResponse, parseJsonSafely, parseTextSafely } from '../../src/response/response.js';
