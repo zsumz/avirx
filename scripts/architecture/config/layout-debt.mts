@@ -1,6 +1,5 @@
 export const genericNameDebt = new Set([
     'src/types/common.ts',
-    'tests/runtime/utilities.test.ts',
 ]);
 
 export const javascriptDebt = new Set([
