@@ -3,7 +3,7 @@ import {
     createApiKeyQueryAuth,
     createBasicAuth,
     createBearerAuth,
-} from '../policy/auth/auth.js';
+} from '../policy/auth/auth-policy.js';
 import { forkRequestState } from './state/fork-request-state.js';
 import type { RequestBuilderContext } from './request-builder-context.js';
 import type { AvirxAuthTokenProvider } from '../types.js';

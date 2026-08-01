@@ -3,7 +3,7 @@ import {
     createApiKeyQueryAuth,
     createBasicAuth,
     createBearerAuth,
-} from '../policy/auth/auth.js';
+} from '../policy/auth/auth-policy.js';
 import { createCachePolicy } from '../policy/cache/cache.js';
 import { createConcurrencyLimiter } from '../policy/concurrency/concurrency.js';
 import { normalizeDurationMs } from '../time/duration.js';

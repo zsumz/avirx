@@ -1,7 +1,7 @@
 import type { AvirxError } from '../error/avirx-error.js';
-import type { AvirxHeaders } from './common.js';
+import type { AvirxHeaders } from './http.js';
 import type { AvirxBuiltRequest } from './request.js';
-import type { AvirxRetryEvent } from './policy.js';
+import type { AvirxRetryEvent } from './retry.js';
 
 export type AvirxTimingMetadata = Readonly<{
     durationMs?: number;

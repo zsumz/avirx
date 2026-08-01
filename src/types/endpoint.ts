@@ -1,5 +1,5 @@
 import type { AvirxBodyValue } from './body.js';
-import type { HttpMethod } from './common.js';
+import type { HttpMethod } from './http.js';
 import type {
     AvirxPathParams,
     AvirxQueryInput,

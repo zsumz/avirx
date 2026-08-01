@@ -1,22 +1,16 @@
 import type { AvirxBodyMetadata, AvirxBodyValue, AvirxMultipartFieldValue, AvirxMultipartFileValue } from './body.js';
 import type { AvirxClientState } from './client.js';
+import type { AvirxCurlOptions } from './curl.js';
+import type { AvirxDurationInput } from './duration.js';
+import type { AvirxExpectedStatusInput, AvirxHeaders, HttpMethod } from './http.js';
+import type { AvirxPrimitiveValue } from './primitive.js';
+import type { AvirxAuthBuilder, AvirxAuthState } from './auth.js';
 import type {
-    AvirxCurlOptions,
-    AvirxDurationInput,
-    AvirxExpectedStatusInput,
-    AvirxHeaders,
-    AvirxPrimitiveValue,
-    HttpMethod,
-} from './common.js';
-import type {
-    AvirxAuthBuilder,
-    AvirxAuthState,
     AvirxHookEvent,
     AvirxHookHandler,
     AvirxHookRegistry,
-    AvirxRetryInput,
-    AvirxRetryMetadata,
-} from './policy.js';
+} from './hooks.js';
+import type { AvirxRetryInput, AvirxRetryMetadata } from './retry.js';
 import type { AvirxDownload, AvirxResponse, AvirxResult } from './response.js';
 import type { AvirxInferSchema, AvirxSchema } from './schema.js';
 

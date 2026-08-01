@@ -62,6 +62,27 @@ describe('source architecture', () => {
         expect(facade).not.toContain('queueHead');
         expect(facade).not.toContain('normalizeDurationMs');
     });
+
+    it('keeps authentication policy creation separate from credential resolution', () => {
+        expectModules([
+            'src/policy/auth/auth-policy.ts',
+            'src/policy/auth/resolve-auth.ts',
+            'src/policy/auth/resolved-auth.ts',
+            'src/policy/auth/state-redaction.ts',
+        ]);
+        expect(readText('src/policy/auth/auth-policy.ts')).not.toContain('normalizeHeader');
+        expect(readText('src/policy/auth/resolve-auth.ts')).not.toContain('Object.freeze({ kind:');
+    });
+
+    it('keeps concurrency queue storage separate from limiter policy', () => {
+        expectModules([
+            'src/policy/concurrency/concurrency.ts',
+            'src/policy/concurrency/options.ts',
+            'src/policy/concurrency/queue.ts',
+        ]);
+        expect(readText('src/policy/concurrency/concurrency.ts')).not.toContain('splice(');
+        expect(readText('src/policy/concurrency/queue.ts')).not.toContain('AvirxConcurrencyInput');
+    });
 });
 
 const REPO_ROOT = resolve(import.meta.dirname, '../../..');

@@ -10,13 +10,43 @@ export type {
     AvirxClientState,
 } from './types/client.js';
 export type {
-    AvirxCurlOptions,
-    AvirxDurationInput,
+    AvirxAuthBuilder,
+    AvirxAuthPolicy,
+    AvirxAuthState,
+    AvirxAuthTokenProvider,
+} from './types/auth.js';
+export type {
+    AvirxCacheInput,
+    AvirxCacheMethod,
+    AvirxCachePolicy,
+} from './types/cache.js';
+export type {
+    AvirxConcurrencyInput,
+    AvirxConcurrencyLimiter,
+} from './types/concurrency.js';
+export type { AvirxCurlOptions } from './types/curl.js';
+export type { AvirxDurationInput } from './types/duration.js';
+export type {
     AvirxExpectedStatusInput,
     AvirxHeaders,
-    AvirxPrimitiveValue,
     HttpMethod,
-} from './types/common.js';
+} from './types/http.js';
+export type {
+    AvirxHookContext,
+    AvirxHookEvent,
+    AvirxHookHandler,
+    AvirxHookRegistry,
+} from './types/hooks.js';
+export type { AvirxPrimitiveValue } from './types/primitive.js';
+export type {
+    AvirxRateLimitInput,
+    AvirxRateLimitLimiter,
+} from './types/rate-limit.js';
+export type {
+    AvirxRetryEvent,
+    AvirxRetryInput,
+    AvirxRetryMetadata,
+} from './types/retry.js';
 export type {
     AvirxContractCall,
     AvirxContractClient,
@@ -30,26 +60,6 @@ export type {
     AvirxEndpointDefinition,
     AvirxEndpointState,
 } from './types/endpoint.js';
-export type {
-    AvirxAuthBuilder,
-    AvirxAuthPolicy,
-    AvirxAuthState,
-    AvirxAuthTokenProvider,
-    AvirxCacheInput,
-    AvirxCacheMethod,
-    AvirxCachePolicy,
-    AvirxConcurrencyInput,
-    AvirxConcurrencyLimiter,
-    AvirxHookContext,
-    AvirxHookEvent,
-    AvirxHookHandler,
-    AvirxHookRegistry,
-    AvirxRateLimitInput,
-    AvirxRateLimitLimiter,
-    AvirxRetryEvent,
-    AvirxRetryInput,
-    AvirxRetryMetadata,
-} from './types/policy.js';
 export type {
     AvirxBuiltRequest,
     AvirxMultipartBuilder,

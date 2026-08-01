@@ -2,20 +2,31 @@ import type { AvirxEndpointContract } from './endpoint.js';
 import type {
     AvirxAuthBuilder,
     AvirxAuthState,
+} from './auth.js';
+import type {
     AvirxCacheInput,
     AvirxCachePolicy,
+} from './cache.js';
+import type {
     AvirxConcurrencyInput,
     AvirxConcurrencyLimiter,
+} from './concurrency.js';
+import type {
     AvirxHookEvent,
     AvirxHookHandler,
     AvirxHookRegistry,
+} from './hooks.js';
+import type {
     AvirxRateLimitInput,
     AvirxRateLimitLimiter,
+} from './rate-limit.js';
+import type {
     AvirxRetryInput,
     AvirxRetryMetadata,
-} from './policy.js';
+} from './retry.js';
 import type { AvirxContractClient } from './contract.js';
-import type { AvirxDurationInput, AvirxHeaders } from './common.js';
+import type { AvirxDurationInput } from './duration.js';
+import type { AvirxHeaders } from './http.js';
 import type { AvirxRequestBuilder } from './request.js';
 
 export type AvirxClient = Readonly<{

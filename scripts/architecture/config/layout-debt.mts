@@ -1,6 +1,4 @@
-export const genericNameDebt = new Set([
-    'src/types/common.ts',
-]);
+export const genericNameDebt: Set<string> = new Set();
 
 export const javascriptDebt = new Set([
     'scripts/browser-smoke.mjs',

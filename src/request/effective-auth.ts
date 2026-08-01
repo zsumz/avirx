@@ -1,5 +1,5 @@
-import { resolveAuthHeaders } from '../policy/auth/auth.js';
-import type { ResolvedAuth } from '../policy/auth/auth.js';
+import { resolveAuthHeaders } from '../policy/auth/resolve-auth.js';
+import type { ResolvedAuth } from '../policy/auth/resolved-auth.js';
 import { getRawAuthPolicy } from '../policy/auth/state-redaction.js';
 import type {
     AvirxAuthPolicy,
