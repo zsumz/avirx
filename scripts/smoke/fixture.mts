@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { assertCondition } from './assertion.mts';
 import { runCommand } from './command.mts';
-
-export type PackedFile = Readonly<{ path: string }>;
+import { parsePackedMetadata } from './pack-metadata.mts';
+import type { PackedFile } from './pack-metadata.mts';
 
 export type PackedFixture = Readonly<{
     directory: string;
@@ -38,7 +38,7 @@ export async function withPackedFixture(
         options.log('Packing package');
         const output = runCommand(
             'npm',
-            ['pack', '--pack-destination', directory, '--json'],
+            ['pack', '--ignore-scripts', '--pack-destination', directory, '--json'],
             { cwd: options.root, env: npmEnvironment },
         );
         const packed = parsePackedMetadata(output);
@@ -71,14 +71,4 @@ export async function withPackedFixture(
 
 export async function writeJsonFile(path: string, value: unknown): Promise<void> {
     await writeFile(path, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
-}
-
-function parsePackedMetadata(output: string): { filename: string; files: readonly PackedFile[] } {
-    const parsed: unknown = JSON.parse(output);
-    assertCondition(Array.isArray(parsed), 'npm pack did not return an array.');
-    const [packed] = parsed as Array<{ filename?: unknown; files?: unknown }>;
-    assertCondition(packed !== undefined, 'npm pack did not report package metadata.');
-    assertCondition(typeof packed.filename === 'string', 'npm pack did not report a tarball filename.');
-    assertCondition(Array.isArray(packed.files), 'npm pack did not report packed files.');
-    return { filename: packed.filename, files: packed.files as PackedFile[] };
 }

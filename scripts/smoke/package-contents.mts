@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { assertCondition } from './assertion.mts';
-import type { PackedFile } from './fixture.mts';
+import type { PackedFile } from './pack-metadata.mts';
 
 const requiredPackedFiles = [
     'package.json',
