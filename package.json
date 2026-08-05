@@ -42,6 +42,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "architecture:check": "tsx scripts/architecture/check.mts",
+    "browser:install": "playwright install --only-shell chromium",
     "build": "tsx scripts/build.mts",
     "build:archive-source": "tsx scripts/source-archive.ts",
     "check": "npm run check:code && npm test && npm run check:package",
@@ -60,6 +61,7 @@
     "esbuild": "^0.28.1",
     "eslint": "^10.6.0",
     "eslint-config-rubric": "^0.1.0-alpha.0",
+    "playwright": "1.62.1",
     "tsx": "^4.22.4",
     "typescript": "5.9.3",
     "vitest": "^4.1.8",

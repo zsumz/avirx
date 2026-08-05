@@ -1,10 +1,9 @@
 #!/usr/bin/env node
-import { writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { browserRuntimeSource } from './smoke/browser-runtime-source.mts';
+import { chromium } from 'playwright';
+import { startBrowserFixtureServer } from './smoke/browser-fixture-server.mts';
 import { assertNoNodeRuntimeImports } from './smoke/browser-runtime-scan.mts';
-import { runCommand } from './smoke/command.mts';
 import { withPackedFixture } from './smoke/fixture.mts';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -18,13 +17,28 @@ await withPackedFixture(
         log('Scanning packed dist for Node runtime imports');
         await assertNoNodeRuntimeImports(join(packageDirectory, 'node_modules/avirx/dist'));
 
-        await writeFile(
-            join(packageDirectory, 'browser-runtime.mjs'),
-            browserRuntimeSource,
-            'utf8',
-        );
-        log('Running browser Web API compatibility fixture');
-        runCommand(process.execPath, ['browser-runtime.mjs'], { cwd: packageDirectory });
+        const server = await startBrowserFixtureServer(packageDirectory);
+        try {
+            const browser = await chromium.launch();
+            try {
+                log('Running packed artifact in Chromium');
+                const page = await browser.newPage();
+                await page.goto(server.url);
+                await page.waitForFunction(() =>
+                    document.body.dataset.smokeStatus === 'passed'
+                    || document.body.dataset.smokeStatus === 'failed');
+                const result = page.locator('body');
+                const status = await result.getAttribute('data-smoke-status');
+                if (status !== 'passed') {
+                    const message = await result.getAttribute('data-smoke-message');
+                    throw new Error(`Chromium fixture failed: ${message ?? 'unknown browser error'}`);
+                }
+            } finally {
+                await browser.close();
+            }
+        } finally {
+            await server.close();
+        }
     },
 );
 

@@ -1,8 +1,21 @@
-export const browserRuntimeSource = `import assert from "node:assert/strict";
-import { avirx, endpoint } from "avirx";
+import { browserAssertionsSource } from './browser-assertions-source.mts';
+
+export const browserRuntimeSource = `import { avirx, endpoint } from "/avirx.js";
+${browserAssertionsSource}
+document.body.dataset.smokeStatus = "running";
+
+try {
+  await runSmoke();
+  document.body.dataset.smokeStatus = "passed";
+} catch (error) {
+  document.body.dataset.smokeStatus = "failed";
+  document.body.dataset.smokeMessage = errorMessage(error);
+}
+
+async function runSmoke() {
 
 for (const name of ["fetch", "Headers", "Request", "Response", "URL", "FormData", "Blob"]) {
-  assert.equal(typeof globalThis[name], "function", \`Expected browser Web API global \${name}\`);
+  equal(typeof globalThis[name], "function", \`Expected browser Web API global \${name}\`);
 }
 
 const seen = [];
@@ -41,8 +54,8 @@ globalThis.fetch = async (input, init = {}) => {
   }
 
   if (request.url.includes("/json")) {
-    assert.equal(init.body, JSON.stringify({ ok: true }));
-    assert.match(headers.get("content-type") ?? "", /application\\/json/u);
+    equal(init.body, JSON.stringify({ ok: true }));
+    match(headers.get("content-type") ?? "", /application\\/json/u);
     return json({ ok: true }, 201);
   }
 
@@ -56,15 +69,15 @@ globalThis.fetch = async (input, init = {}) => {
 try {
   const User = {
     parse(input) {
-      assert.equal(typeof input.id, "string");
-      assert.equal(typeof input.email, "string");
+      equal(typeof input.id, "string");
+      equal(typeof input.email, "string");
       return { id: input.id, email: input.email };
     },
   };
 
   const Params = {
     parse(input) {
-      assert.equal(typeof input.id, "string");
+      equal(typeof input.id, "string");
       return { id: input.id };
     },
   };
@@ -81,25 +94,25 @@ try {
     .query(new URLSearchParams([["include", "profile"]]))
     .as(User);
 
-  assert.equal(user.email, "browser@example.com");
-  assert.equal(seen.at(-1).token, "Bearer browser-token");
-  assert.equal(seen.at(-1).url.searchParams.get("include"), "profile");
+  equal(user.email, "browser@example.com");
+  equal(seen.at(-1).token, "Bearer browser-token");
+  equal(seen.at(-1).url.searchParams.get("include"), "profile");
 
   const form = new FormData();
   form.set("email", "browser@example.com");
   const formResponse = await api.post("/forms").body(form).expect(201).json();
-  assert.deepEqual(formResponse, { ok: true, kind: "form" });
+  deepEqual(formResponse, { ok: true, kind: "form" });
 
   const blob = new Blob([JSON.stringify({ ok: true })], { type: "application/json" });
   const blobResponse = await api.post("/blobs").body(blob).expect(201).json();
-  assert.deepEqual(blobResponse, { ok: true, kind: "blob" });
+  deepEqual(blobResponse, { ok: true, kind: "blob" });
 
   const params = new URLSearchParams([["q", "browser"]]);
   const paramsResponse = await api.post("/search").body(params).expect(201).json();
-  assert.deepEqual(paramsResponse, { ok: true, kind: "url-search-params" });
+  deepEqual(paramsResponse, { ok: true, kind: "url-search-params" });
 
   const jsonResponse = await api.post("/json").body({ ok: true }).expect(201).json();
-  assert.deepEqual(jsonResponse, { ok: true });
+  deepEqual(jsonResponse, { ok: true });
 
   const built = await api.post("/blobs").body(blob).build();
   const browserRequest = new Request(built.url, {
@@ -107,8 +120,8 @@ try {
     headers: built.headers,
     method: built.method,
   });
-  assert.equal(browserRequest.method, "POST");
-  assert.equal(browserRequest.headers.get("authorization"), "Bearer browser-token");
+  equal(browserRequest.method, "POST");
+  equal(browserRequest.headers.get("authorization"), "Bearer browser-token");
 
   const contractApi = avirx("https://api.example.test").contract({
     getUser: endpoint
@@ -118,7 +131,7 @@ try {
   });
 
   const contractUser = await contractApi.getUser({ path: { id: "usr_123" } });
-  assert.equal(contractUser.email, "contract@example.com");
+  equal(contractUser.email, "contract@example.com");
 
   assert(seen.some((call) => call.body instanceof FormData));
   assert(seen.some((call) => call.body instanceof Blob));
@@ -132,5 +145,6 @@ function json(value, status = 200) {
     headers: { "content-type": "application/json" },
     status,
   });
+}
 }
 `;

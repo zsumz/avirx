@@ -8,10 +8,10 @@ It has no runtime dependencies and does not replace the underlying HTTP transpor
 The package requires Node.js 18.17 or a runtime with compatible `fetch`, `Request`, `Response`,
 `Headers`, `Blob`, `FormData`, `ReadableStream`, and `AbortController` globals.
 
-CI runs the complete repository gate on maintained Node release lines and the current Node release.
-The declared Node 18.17 minimum runs installed-package and browser-Web-API compatibility smokes.
-Browser compatibility is checked against the packed runtime bundle, including a scan for Node-only
-imports and globals.
+CI runs source, unit, architecture, and packed Node gates on maintained Node release lines and the
+current Node release. One maintained Node lane also enforces coverage thresholds and runs the packed
+artifact in real headless Chromium. That browser lane includes a scan for Node-only imports and
+globals. The declared Node 18.17 minimum runs the installed-package Node compatibility smoke.
 
 Pass a custom `fetch` implementation as the second argument when the host does not provide one or
 when a test needs a controlled transport:

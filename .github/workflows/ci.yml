@@ -33,8 +33,17 @@ jobs:
           node-version: ${{ matrix.node }}
       - name: Install dependencies
         run: npm ci
-      - name: Validate source and packed behavior
-        run: npm run check
+      - name: Validate source and packed Node behavior
+        run: npm run check:code && npm test && npm run smoke:package
+      - name: Enforce coverage thresholds
+        if: matrix.node == 24
+        run: npm run test:coverage
+      - name: Install Chromium
+        if: matrix.node == 24
+        run: npx playwright install --with-deps --only-shell chromium
+      - name: Verify packed browser compatibility
+        if: matrix.node == 24
+        run: npm run smoke:browser
 
   minimum-runtime:
     # Runtime compatibility is broader than the maintained Node lines used by repository tooling.
@@ -53,5 +62,3 @@ jobs:
         run: npm ci
       - name: Verify packed Node compatibility
         run: npm run smoke:package
-      - name: Verify packed Web API compatibility
-        run: npm run smoke:browser
