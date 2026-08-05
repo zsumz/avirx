@@ -28,15 +28,7 @@ function isRuntimeModuleReference(
     statement: ts.Statement,
 ): statement is ts.ImportDeclaration | ts.ExportDeclaration {
     if (ts.isImportDeclaration(statement)) {
-        const clause = statement.importClause;
-        if (clause?.phaseModifier === ts.SyntaxKind.TypeKeyword) {
-            return false;
-        }
-        const bindings = clause?.namedBindings;
-        if (bindings !== undefined && ts.isNamedImports(bindings)) {
-            return bindings.elements.some((element) => !element.isTypeOnly);
-        }
-        return true;
+        return hasRuntimeImport(statement.importClause);
     }
     if (!ts.isExportDeclaration(statement) || statement.isTypeOnly) {
         return false;
@@ -44,7 +36,27 @@ function isRuntimeModuleReference(
     const clause = statement.exportClause;
     return clause === undefined
         || !ts.isNamedExports(clause)
+        || clause.elements.length === 0
         || clause.elements.some((element) => !element.isTypeOnly);
+}
+
+function hasRuntimeImport(clause: ts.ImportClause | undefined): boolean {
+    if (clause === undefined) {
+        return true;
+    }
+    if (clause.phaseModifier === ts.SyntaxKind.TypeKeyword) {
+        return false;
+    }
+    if (clause.name !== undefined) {
+        return true;
+    }
+    const bindings = clause.namedBindings;
+    if (bindings === undefined) {
+        return false;
+    }
+    return ts.isNamespaceImport(bindings)
+        || bindings.elements.length === 0
+        || bindings.elements.some((element) => !element.isTypeOnly);
 }
 
 export function resolveSourceReference(
