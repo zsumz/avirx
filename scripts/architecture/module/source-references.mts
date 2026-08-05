@@ -30,33 +30,11 @@ function isRuntimeModuleReference(
     if (ts.isImportDeclaration(statement)) {
         return hasRuntimeImport(statement.importClause);
     }
-    if (!ts.isExportDeclaration(statement) || statement.isTypeOnly) {
-        return false;
-    }
-    const clause = statement.exportClause;
-    return clause === undefined
-        || !ts.isNamedExports(clause)
-        || clause.elements.length === 0
-        || clause.elements.some((element) => !element.isTypeOnly);
+    return ts.isExportDeclaration(statement) && !statement.isTypeOnly;
 }
 
 function hasRuntimeImport(clause: ts.ImportClause | undefined): boolean {
-    if (clause === undefined) {
-        return true;
-    }
-    if (clause.phaseModifier === ts.SyntaxKind.TypeKeyword) {
-        return false;
-    }
-    if (clause.name !== undefined) {
-        return true;
-    }
-    const bindings = clause.namedBindings;
-    if (bindings === undefined) {
-        return false;
-    }
-    return ts.isNamespaceImport(bindings)
-        || bindings.elements.length === 0
-        || bindings.elements.some((element) => !element.isTypeOnly);
+    return clause?.phaseModifier !== ts.SyntaxKind.TypeKeyword;
 }
 
 export function resolveSourceReference(

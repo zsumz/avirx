@@ -14,7 +14,7 @@ const syntaxCases: readonly SyntaxCase[] = [
         source: 'import type { Client } from \'./client.js\';',
     },
     {
-        expected: [],
+        expected: ['./client.js'],
         label: 'inline type-only imports',
         source: 'import { type Client } from \'./client.js\';',
     },
@@ -44,7 +44,7 @@ const syntaxCases: readonly SyntaxCase[] = [
         source: 'export type { Client } from \'./client.js\';',
     },
     {
-        expected: [],
+        expected: ['./client.js'],
         label: 'inline type-only exports',
         source: 'export { type Client } from \'./client.js\';',
     },
