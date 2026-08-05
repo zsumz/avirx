@@ -7,6 +7,10 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/zsumz/avirx/actions/workflows/ci.yml"><img src="https://github.com/zsumz/avirx/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+</p>
+
+<p align="center">
   Build requests as immutable values, preview them, render cURL, validate responses, then execute.
 </p>
 
@@ -20,6 +24,8 @@
   <a href="#features">Features</a>
   <span> · </span>
   <a href="#runtime">Runtime</a>
+  <span> · </span>
+  <a href="#guides">Guides</a>
 </p>
 
 <br />
@@ -85,3 +91,9 @@ if (!result.ok) {
 
 Avirx requires Node.js 18.17 or newer, or any runtime with compatible fetch,
 Request, Response, Headers, Blob, FormData, and AbortController APIs.
+
+## Guides
+
+- [Runtime behavior](https://github.com/zsumz/avirx/blob/main/docs/runtime.md)
+- [Policies](https://github.com/zsumz/avirx/blob/main/docs/policies.md)
+- [Comparison](https://github.com/zsumz/avirx/blob/main/COMPARISON.md)
