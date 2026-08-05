@@ -6,6 +6,7 @@ import { runCommand } from './smoke/command.mts';
 import { withPackedFixture, writeJsonFile } from './smoke/fixture.mts';
 import { assertInstalledPackage, assertPackedPackage } from './smoke/package-contents.mts';
 import { runtimeSmokeSource } from './smoke/package-runtime-source.mts';
+import { serverSmokeSource } from './smoke/package-server-source.mts';
 import { typeSmokeSource } from './smoke/package-type-source.mts';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -26,6 +27,10 @@ await withPackedFixture(
         await writeFile(join(packageDirectory, 'runtime.mjs'), runtimeSmokeSource, 'utf8');
         log('Verifying ESM runtime import and request builder behavior');
         runCommand(process.execPath, ['runtime.mjs'], { cwd: packageDirectory });
+
+        await writeFile(join(packageDirectory, 'server-runtime.mjs'), serverSmokeSource, 'utf8');
+        log('Verifying installed package against a real HTTP server');
+        runCommand(process.execPath, ['server-runtime.mjs'], { cwd: packageDirectory });
 
         await writeFile(join(packageDirectory, 'types.ts'), typeSmokeSource, 'utf8');
         await writeJsonFile(join(packageDirectory, 'tsconfig.json'), {

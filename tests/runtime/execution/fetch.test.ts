@@ -70,6 +70,20 @@ describe('fetch execution', () => {
         const init = fetchImpl.mock.calls[0]?.[1];
         expect(init?.signal).toBeInstanceOf(AbortSignal);
     });
+
+    it('marks streaming request bodies for native Node fetch', async () => {
+        const fetchImpl = vi.fn<typeof fetch>(async () => Promise.resolve(new Response('ok')));
+        const body: ReadableStream<Uint8Array> = new ReadableStream();
+
+        await avirx('https://api.example.com', { fetch: fetchImpl })
+            .post('/stream')
+            .body(body)
+            .send();
+
+        const init = fetchImpl.mock.calls[0]?.[1] as RequestInit & { duplex?: string };
+        expect(init.body).toBe(body);
+        expect(init.duplex).toBe('half');
+    });
 });
 
 function formatFetchInput(input: Parameters<typeof fetch>[0] | undefined): string {
