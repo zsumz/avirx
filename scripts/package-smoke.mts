@@ -16,8 +16,12 @@ const log = (message: string): void => {
 await withPackedFixture(
     { log, prefix: 'avirx-package-smoke-', root },
     async ({ files, packageDirectory }) => {
-        await assertPackedPackage(packageDirectory, files);
+        const shape = await assertPackedPackage(packageDirectory, files);
         assertInstalledPackage(packageDirectory);
+        log(
+            `Verified ${String(shape.fileCount)} files, ${String(shape.unpackedBytes)} bytes, `
+            + `${String(shape.runtimeFileCount)} runtime entrypoint`,
+        );
 
         await writeFile(join(packageDirectory, 'runtime.mjs'), runtimeSmokeSource, 'utf8');
         log('Verifying ESM runtime import and request builder behavior');

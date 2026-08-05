@@ -2,6 +2,7 @@ import { assertCondition } from './assertion.mts';
 
 export type PackedFile = Readonly<{
     path: string;
+    size: number;
 }>;
 
 export type PackedMetadata = Readonly<{
@@ -50,7 +51,11 @@ function isPackCandidate(value: unknown): value is PackCandidate {
 }
 
 function isPackedFile(value: unknown): value is PackedFile {
-    return isRecord(value) && typeof value.path === 'string';
+    return isRecord(value)
+        && typeof value.path === 'string'
+        && typeof value.size === 'number'
+        && Number.isSafeInteger(value.size)
+        && value.size >= 0;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

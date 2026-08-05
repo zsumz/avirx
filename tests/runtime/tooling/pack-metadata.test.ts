@@ -4,7 +4,7 @@ import { parsePackedMetadata } from '../../../scripts/smoke/pack-metadata.mts';
 describe('npm pack metadata', () => {
     const metadata = {
         filename: 'avirx-0.1.0-alpha.1.tgz',
-        files: [{ path: 'dist/index.js' }],
+        files: [{ path: 'dist/index.js', size: 1_024 }],
     };
 
     it('accepts the legacy array response', () => {

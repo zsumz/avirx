@@ -11,23 +11,44 @@ const requiredPackedFiles = [
     'avirx-logo.svg',
     'dist/index.js',
     'dist/index.d.ts',
-    'dist/client/client.js',
-    'dist/request/create-request-builder.js',
-    'dist/contract/create-contract-client.js',
-    'dist/contract/endpoint.js',
 ];
+
+const maximumPackedFiles = 125;
+const maximumUnpackedBytes = 150_000;
+
+export type PackageShape = Readonly<{
+    fileCount: number;
+    runtimeFileCount: number;
+    unpackedBytes: number;
+}>;
 
 export async function assertPackedPackage(
     packageDirectory: string,
     files: readonly PackedFile[],
-): Promise<void> {
+): Promise<PackageShape> {
     const packedPaths = new Set(files.map((file) => file.path));
+    const unpackedBytes = files.reduce((total, file) => total + file.size, 0);
+    assertCondition(
+        files.length <= maximumPackedFiles,
+        `Packed package has ${String(files.length)} files; expected at most ${String(maximumPackedFiles)}.`,
+    );
+    assertCondition(
+        unpackedBytes <= maximumUnpackedBytes,
+        `Packed package is ${String(unpackedBytes)} bytes; expected at most ${String(maximumUnpackedBytes)}.`,
+    );
     for (const file of files) {
         assertCondition(!file.path.endsWith('.map'), `Packed package includes source map ${file.path}.`);
     }
     for (const path of requiredPackedFiles) {
         assertCondition(packedPaths.has(path), `Packed package is missing ${path}.`);
     }
+    const runtimeFiles = files
+        .map((file) => file.path)
+        .filter((path) => path.startsWith('dist/') && path.endsWith('.js'));
+    assertCondition(
+        runtimeFiles.length === 1 && runtimeFiles[0] === 'dist/index.js',
+        `Packed runtime must contain only dist/index.js; found ${runtimeFiles.join(', ')}.`,
+    );
     for (const path of packedPaths) {
         if (path.endsWith('.js') || path.endsWith('.d.ts')) {
             const source = await readFile(join(packageDirectory, 'node_modules/avirx', path), 'utf8');
@@ -37,6 +58,11 @@ export async function assertPackedPackage(
             );
         }
     }
+    return {
+        fileCount: files.length,
+        runtimeFileCount: runtimeFiles.length,
+        unpackedBytes,
+    };
 }
 
 export function assertInstalledPackage(packageDirectory: string): void {
