@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./avirx-logo.svg" alt="avirx" width="720">
+  <img src="https://raw.githubusercontent.com/zsumz/avirx/main/avirx-logo.svg" alt="avirx" width="720">
 </p>
 
 <p align="center">
