@@ -28,6 +28,14 @@
     "access": "public",
     "provenance": true
   },
+  "sallyport": {
+    "requiredStatusChecks": [
+      "Node 18.17 package compatibility",
+      "Node 22",
+      "Node 24",
+      "Node 26"
+    ]
+  },
   "sideEffects": false,
   "files": [
     "dist",
@@ -53,6 +61,9 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint .",
+    "prepublishOnly": "node -e \"throw new Error('Publish avirx only through .github/workflows/sallyport.yml.')\"",
+    "release:check": "npm run check && npm run test:coverage && npm pack --dry-run --json",
+    "release:smoke": "playwright install --with-deps --only-shell chromium && tsx scripts/release-smoke.mts",
     "smoke:browser": "tsx scripts/browser-smoke.mts",
     "smoke:package": "tsx scripts/package-smoke.mts"
   },
