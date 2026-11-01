@@ -21,17 +21,16 @@ describe('concurrency policy', () => {
     it('releases slots after request hook failures', async () => {
         const fetchImpl = vi.fn<typeof fetch>(async () => Promise.resolve(new Response('ok')));
         const client = avirx('https://api.example.com', { fetch: fetchImpl }).concurrency(1);
+        const cause = new Error('bad hook');
 
         await expect(
             client
                 .get('/hook-fails')
                 .on('request', () => {
-                    throw new Error('bad hook');
+                    throw cause;
                 })
                 .send(),
-        ).rejects.toMatchObject({
-            message: 'Request failed.',
-        });
+        ).rejects.toBe(cause);
         await expect(client.get('/ok').text()).resolves.toBe('ok');
 
         expect(fetchImpl).toHaveBeenCalledOnce();

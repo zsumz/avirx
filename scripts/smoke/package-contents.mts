@@ -13,8 +13,8 @@ const requiredPackedFiles = [
     'dist/index.d.ts',
 ];
 
-const maximumPackedFiles = 125;
-const maximumUnpackedBytes = 165_000;
+const maximumPackedFiles = 130;
+const maximumUnpackedBytes = 175_000;
 
 export type PackageShape = Readonly<{
     fileCount: number;

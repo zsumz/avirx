@@ -26,14 +26,20 @@ export function buildRequest(
         ...state.query,
     });
     const redactedUrl = redactAuthQuery(url, auth.redactedQuery);
-    const headers = Object.freeze({
+    const bodyMetadata = state.bodyMetadata ?? classifyBody(undefined);
+    const explicitHeaders = {
         ...clientState.headers,
         ...auth.headers ?? {},
         ...state.headers,
+    };
+    const headers = Object.freeze({
+        ...bodyMetadata.kind === 'json' && explicitHeaders['content-type'] === undefined
+            ? { 'content-type': 'application/json' } : {},
+        ...explicitHeaders,
     });
     const built: MutableBuiltRequest = {
         authenticated: getEffectiveAuthPolicy(clientState, state) !== undefined,
-        bodyMetadata: state.bodyMetadata ?? classifyBody(undefined),
+        bodyMetadata,
         headers,
         method: state.method,
         redactedHeaders: Object.freeze({

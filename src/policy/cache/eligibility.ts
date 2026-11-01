@@ -1,5 +1,18 @@
 import type { AvirxHeaders, AvirxResponse } from '../../types.js';
 
+const CONDITIONAL_HEADERS = [
+    'range',
+    'if-range',
+    'if-match',
+    'if-none-match',
+    'if-modified-since',
+    'if-unmodified-since',
+] as const;
+
+export function hasConditionalHeaders(headers: AvirxHeaders): boolean {
+    return CONDITIONAL_HEADERS.some((name) => Object.hasOwn(headers, name));
+}
+
 export function forbidsCache(headers: AvirxHeaders): boolean {
     const directives = cacheDirectives(headers['cache-control']);
     return directives === undefined || directives.has('no-store') || directives.has('no-cache');

@@ -10,11 +10,11 @@ CommonJS `require()` and deep imports into `dist` or `src` are not supported.
 | Node.js | Minimum 18.17; installed-package compatibility at that floor, full CI on Node 22/24/26. Supporting an old runtime does not imply its upstream security support. |
 | TypeScript | Minimum 5.0.4; packed consumer fixtures compile with 5.0.4 and the repository's 5.9.3 compiler. Strict mode and DOM declarations are required for Web API types. |
 | Browsers | Modern Web APIs including native `AbortSignal.any`; real Chromium tests cover package loading, native fetch, cookie privacy, cross-origin cache bypass, public caching, streaming, and composed cancellation. Firefox/WebKit have no dedicated CI gate. |
-| Other runtimes | Best effort when they provide compatible fetch, URL, Request, Response, Headers, Blob, FormData, ReadableStream, AbortController and AbortSignal.any. |
+| Other runtimes | Best effort when they provide compatible fetch, URL, Request, Response, Headers, Blob, FormData, ReadableStream, AbortController, AbortSignal.any and performance.now(). |
 
 Native `AbortSignal.any` keeps cancellation attached to native response bodies without manually
 retained listeners. Avirx fails clearly when a requested policy requires unavailable composition.
-Custom fetch implementations must honor the supplied signal and Web API behavior. Fetch controls
+Custom fetch implementations must honor the supplied signal, redirect policy and Web API behavior. Fetch controls
 wire-level header restrictions: Node24.19 fetch drops a header literally named `__proto__` even when
 its Request/Headers value preserves it. Avirx preserves that key in builders and injected-fetch input;
 it does not replace the transport to work around this upstream behavior.
@@ -25,7 +25,7 @@ The root exports, their declarations, and documented builder/terminal behavior f
 surface. Public `state` and `clientState` remain intentional APIs, including the advanced policy
 handles described below. They are not private escape hatches that a v1 patch can silently remove.
 
-- Configuration records, headers, path/query values, expected statuses, and hook lists are frozen
+- Configuration records, explicit headers, path/query values, expected statuses, and hook lists are frozen
   snapshots. Changing a derived builder does not change its source.
 - URL values and replayable mutable bodies obtained from state, build, or preview are independent
   copies. Mutating such a copy cannot rewrite another request. Blob values are already immutable.
@@ -61,5 +61,21 @@ This stabilization candidate is pre-v1 and deliberately corrects these behaviors
 - Async schemas are awaited, and contract input/output inference follows the documented parser rules.
 - cURL uses literal inline data with effective content type and preserves explicitly empty headers;
   unrepresentable NUL bodies are omitted.
+
+Further deliberate decisions from the detailed review of `e8e6c12`:
+
+- Protected custom credentials reject redirects by default; creation-time `allowCredentialRedirects`
+  explicitly trusts the full chain. Native Authorization and ordinary redirect behavior are retained.
+- Conditional/range requests bypass cache reads and writes. Clear blocks older automatic operations
+  from refilling storage; explicit low-level set after clear is a new write.
+- Inferred JSON MIME lives in built headers, not explicit state headers. Body replacement preserves
+  only caller-owned MIME. Relative route suffixes, including root slash counts, are preserved.
+- URL userinfo, malformed/unsafe placeholder names, reserved contract `then`, and symbol contract
+  keys reject. Own non-enumerable string contract keys are supported.
+- `AvirxRequestBuilder` defaults to a common-capability view; body helpers specify the second generic
+  as `true`. Exact awaited path-schema outputs and unknown-property rejection are enforced.
+- `AvirxError.kind` is stable. Hooks/auth providers reject unchanged across all terminals; operation
+  failures become result values, and cancellation belongs to the current request.
+- Elapsed policies use monotonic time. Absolute HTTP dates/public timestamps retain wall time.
 
 See [the acceptance checklist](./v1-stabilization.md) for each review finding and its regression.

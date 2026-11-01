@@ -7,7 +7,6 @@ import type {
 } from '../types.js';
 
 export function prepareBodyState(
-    clientHeaders: AvirxHeaders,
     state: AvirxRequestState,
     body: AvirxBodyValue,
 ): {
@@ -42,12 +41,7 @@ export function prepareBodyState(
             contentType: 'application/json',
             kind: 'json',
         },
-        headers: hasContentType(clientHeaders) || hasContentType(state.headers)
-            ? state.headers
-            : {
-                ...state.headers,
-                'content-type': 'application/json',
-            },
+        headers: state.headers,
     };
 }
 
@@ -87,8 +81,4 @@ export function cloneFormData(body: AvirxBodyValue): FormData {
         data.append(key, value);
     });
     return data;
-}
-
-function hasContentType(headers: AvirxHeaders): boolean {
-    return headers['content-type'] !== undefined;
 }

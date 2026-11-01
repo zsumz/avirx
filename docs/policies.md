@@ -24,6 +24,20 @@ Raw auth policy values are kept outside public state. Built requests still conta
 and URL needed by `fetch`, alongside redacted forms used by preview and cURL output. Authentication
 also makes the request ineligible for the built-in cache.
 
+Custom credential headers default to `redirect: 'error'`, including managed API-key header names and
+known directly supplied secret headers. This rejects same-origin redirects too: browser fetch cannot
+inspect a redirect target before forwarding credentials. Native Authorization stripping remains in
+place for bearer/basic auth, and uncredentialed requests retain normal fetch redirects.
+
+```ts
+const trustedApi = avirx(baseUrl, { allowCredentialRedirects: true });
+```
+
+This creation-time option trusts the entire redirect chain, including cross-origin destinations,
+and flows into derived clients. Use `.auth.apiKey(...)` for arbitrary custom secret names; an
+unmarked arbitrary header cannot be inferred as a credential. A custom fetch must honor
+`RequestInit.redirect` as well as the supplied signal.
+
 ## Retry
 
 ```ts
@@ -77,7 +91,9 @@ presence and value participate in the key.
 
 It defaults to `GET`, varies on `accept`, and allows explicit `HEAD`. This is a TTL memoizer;
 it does not perform HTTP revalidation, combine ranges, or infer server freshness. `ttl` controls
-freshness within the eligible public-data boundary.
+freshness within the eligible public-data boundary. Requests containing `Range`, `If-Range`,
+`If-Match`, `If-None-Match`, `If-Modified-Since`, or `If-Unmodified-Since` bypass both reads and writes,
+even when the supplied value is empty. The transport retains their conditional/range semantics.
 
 Default limits are **128 entries** and **16 MiB total body bytes**. Set `maxEntries` and
 `maxTotalBytes` to change these finite limits. `maxBytes` optionally imposes a smaller per-response
@@ -85,8 +101,15 @@ limit and requires valid `Content-Length` metadata. Body reads stop at the effec
 expired entries are reclaimed during normal access and writes, and live entries use least-recently-used
 eviction. Expired data can remain idle until the next cache operation, but storage stays bounded.
 
-Call `api.state.cache?.clear()` to invalidate all entries, including writes already in flight.
-Derived clients share the same policy store until a new `.cache(...)` policy is installed.
+Call `api.state.cache?.clear()` to invalidate all entries. Earlier automatic operations cannot
+repopulate the store, even if they are still in authentication, hooks, a network attempt, retries,
+contract input validation, response validation, or body copying. Clear does not cancel those
+operations or change the result delivered to their caller. A new execution of a reusable builder
+captures the new generation and can populate fresh data.
+
+An explicit low-level `cache.set()` invoked after clear is a new intentional write and may store an
+eligible response; clear during that write's body copy prevents storage. Derived clients share the
+same policy store until a new `.cache(...)` policy is installed.
 
 Cache lookup happens before admission and hooks. Hits consume no network budgets or hooks.
 Buffered terminals write only after successful parsing and awaited validation. `.send()` can read
@@ -143,12 +166,24 @@ hooks for the same event, and hooks run sequentially in registration order.
 - `retry` runs after the retry event is created and before its delay.
 - `error` runs for Avirx transport, status, abort, timeout, JSON, and validation failures.
 
-A throwing hook stops the active operation; keep hook code small, bounded, and independently
-reliable. Throwing terminals propagate response/retry/error-hook exceptions unchanged. In `.result()`,
-an `AvirxError` escaping request execution becomes `ok: false`, including errors from response/retry
-hooks or an error hook handling a transport failure. Error-hook exceptions during final HTTP status
-handling or body parsing/validation reject, including `AvirxError`; other response/retry/error-hook
-exceptions also reject. Request-hook failures remain normalized as request failures.
+Hooks that throw or reject stop the operation and reject their original value from all terminals,
+including `.result()`. The same rule applies to auth providers. Operation error hooks are not invoked
+for callback failures. Successful-response schema failures become `validation` operation errors.
+An `.error(schema)` parser failure remains an `http` error with the parser failure as its cause;
+contract input parsing rejects the original value during preflight. Callback failures remain
+separate from the operation failures represented by `ok: false`; the thrown value's class does not
+change the callback rule.
 
 Hooks and auth providers are user-owned asynchronous code. Avirx does not impose a callback timeout;
 keep them bounded. Fetch timeouts begin at dispatch, after hooks and queue waits.
+
+## Clocks and ownership
+
+Rate windows, cache TTLs and elapsed response durations use `performance.now()`. Host wall-clock
+corrections do not accelerate or extend these elapsed policies. Public start/end timestamps remain
+wall-clock epoch values, and HTTP `Retry-After` dates are evaluated against wall time. Duration need
+not equal the subtraction of those public timestamps after a clock correction.
+
+Concurrency and timeout apply through response headers, not through all body consumption. Stored
+cache-body limits do not bound all transient allocations, parsed data, or caller-retained response
+clones. Callers owning native response bodies, including error responses, must consume or cancel them.

@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { createServer, type Server, type ServerResponse } from 'node:http';
 import { join } from 'node:path';
-import { handleCorsBrowserRequest } from './browser-cors-server.mts';
+import { createCorsBrowserHandler } from './browser-cors-server.mts';
 import { createNativeBrowserHandler } from './browser-native-server.mts';
 import { browserRuntimeSource } from './browser-runtime-source.mts';
 
@@ -18,9 +18,14 @@ export async function startBrowserFixtureServer(
         'utf8',
     );
     const nativeHandler = createNativeBrowserHandler();
+    let credentialTarget = '';
     const server = createServer((request, response) => {
-        if (nativeHandler(request, response)) return;
         const pathname = new URL(request.url ?? '/', 'http://localhost').pathname;
+        if (pathname === '/native/credential-redirect') {
+            response.writeHead(302, { 'cache-control': 'no-store', location: credentialTarget }).end();
+            return;
+        }
+        if (nativeHandler(request, response)) return;
         if (pathname === '/') {
             send(response, 'text/html; charset=utf-8', browserPage);
             return;
@@ -35,7 +40,7 @@ export async function startBrowserFixtureServer(
         }
         response.writeHead(404).end();
     });
-    const corsServer = createServer(handleCorsBrowserRequest);
+    const corsServer = createServer(createCorsBrowserHandler());
     try {
         await listen(server);
         await listen(corsServer);
@@ -52,6 +57,7 @@ export async function startBrowserFixtureServer(
         await close(corsServer);
         throw new Error('Browser fixture server did not bind to a TCP port.');
     }
+    credentialTarget = `http://127.0.0.1:${String(corsAddress.port)}/credential-target`;
     return {
         async close() {
             await Promise.all([close(server), close(corsServer)]);

@@ -6,7 +6,7 @@ It has no runtime dependencies and does not replace the underlying HTTP transpor
 ## Runtime support
 
 The package requires Node.js 18.17 or a runtime with compatible `fetch`, `Request`, `Response`,
-`Headers`, `Blob`, `FormData`, `ReadableStream`, `AbortController`, and native `AbortSignal.any`
+`Headers`, `Blob`, `FormData`, `ReadableStream`, `AbortController`, `performance.now()`, and native `AbortSignal.any`
 globals. See [compatibility](./compatibility.md) for the tested matrix and compiler baseline.
 
 CI runs source, unit, architecture, and packed Node gates on maintained Node release lines and the
@@ -56,7 +56,11 @@ settle; Avirx checks cancellation after they complete. A rate-limit `queueTimeou
 `GET` and `HEAD` reject body and multipart calls. Stream and `FormData` bodies are not retried because
 they cannot be replayed safely. The default cURL renderer omits multipart, binary, and stream bodies
 instead of consuming or misrepresenting them. Inspection returns independent copies of replayable
-mutable bodies. Streams retain their native single-use identity. Path parameters that form a complete
+mutable bodies. Streams retain their native single-use identity. JSON Content-Type is inferred at final build, so replacing a JSON body removes the old inference.
+`state.headers` contains explicit headers only; final built headers include any inferred JSON value.
+Explicit client/request Content-Type values, including an empty value, remain caller-owned across
+body replacements. Native fetch supplies multipart boundaries and native text/form/Blob defaults.
+Path parameters that form a complete
 `.` or `..` segment are rejected before URL normalization can change the target resource. Route
 templates reject static C0 controls (U+0000–U+001F) and leading/trailing ASCII spaces before
 interpolation; interior spaces and explicitly percent-encoded characters remain supported. Parameter
@@ -110,11 +114,13 @@ sanitize arbitrary path values, query values, or request bodies. Do not place se
 and assume preview output will remove them. `.curl({ redacted: false })` explicitly renders raw auth
 headers and URLs and should be treated as sensitive output.
 
-Buffered terminal transport failures use the same `AvirxError` and error hooks as fetch failures.
-Request-hook failures are normalized as request failures and run error hooks. Throwing terminals
-propagate response/retry/error-hook exceptions unchanged. `.result()` converts an `AvirxError`
-escaping request execution to `ok: false`, including one thrown by a response/retry hook or an error
-hook handling a transport failure. A nested callback request can therefore supply the returned
-error's request metadata. Error-hook exceptions during final status handling or body parsing/validation
-reject, including `AvirxError`; other response/retry/error-hook exceptions also reject. Contract input
-validation remains preflight and rejects. See [hooks](./policies.md#hooks) for the same boundary.
+Buffered terminal transport failures use the same `AvirxError` and operation error hooks as fetch
+failures. Every library-generated error has a stable `kind`; use it instead of matching message text.
+Aborted errors identify the current request and preserve the abort reason as cause, even when it is
+an `AvirxError` from a different request. A buffered cancellation can retain the current response's
+status after headers, but never inherits an unrelated response/status from its reason.
+
+Hooks and auth-provider failures reject their original value from all terminals, including result
+mode. They do not invoke operation error hooks. Schema validation failures remain operation errors;
+contract input validation stays preflight and rejects before transport. See [policies](./policies.md)
+for redirect, invalidation, clock and ownership boundaries.

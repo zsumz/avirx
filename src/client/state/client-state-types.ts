@@ -10,6 +10,7 @@ import type {
 } from '../../types.js';
 
 export interface MutableClientState {
+    allowCredentialRedirects?: boolean;
     auth?: AvirxAuthPolicy;
     baseUrl: URL;
     cache?: AvirxCachePolicy;

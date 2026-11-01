@@ -1,4 +1,5 @@
 import { createAvirxResponse } from '../../response/create-response.js';
+import { parseContentLength } from '../../response/content-length.js';
 import { normalizeHeaders } from '../../transport/headers.js';
 import type { AvirxBuiltRequest, AvirxHeaders, AvirxResponse } from '../../types.js';
 
@@ -51,13 +52,4 @@ export function isWithinKnownMaxBytes(response: AvirxResponse, maxBytes: number 
 
     const contentLength = parseContentLength(response.headers['content-length']);
     return contentLength !== undefined && contentLength <= maxBytes;
-}
-
-function parseContentLength(value: string | undefined): number | undefined {
-    if (value === undefined || !/^\d+$/u.test(value)) {
-        return undefined;
-    }
-
-    const contentLength = Number(value);
-    return Number.isSafeInteger(contentLength) ? contentLength : undefined;
 }

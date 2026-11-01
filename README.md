@@ -95,7 +95,7 @@ if (!result.ok) {
 ## Runtime
 
 Avirx requires Node.js 18.17 or newer, or any runtime with compatible fetch,
-Request, Response, Headers, Blob, FormData, ReadableStream, and AbortSignal.any APIs.
+Request, Response, Headers, Blob, FormData, ReadableStream, performance.now(), and AbortSignal.any APIs.
 The package is ESM-only; TypeScript consumers require TypeScript 5.0.4 or newer.
 
 ## Guides

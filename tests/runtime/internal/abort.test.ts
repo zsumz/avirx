@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createAbortScope, createRequestFailureMessage } from '../../../src/transport/abort.js';
+import { createAbortScope } from '../../../src/transport/abort.js';
 
 describe('abort utilities', () => {
     it('composes abort signals while preserving the abort reason', () => {
@@ -13,18 +13,5 @@ describe('abort utilities', () => {
         expect(scope.signal?.aborted).toBe(true);
         expect(scope.signal?.reason).toBe(reason);
         scope.cancel();
-    });
-
-    it('names timeout, external abort, and generic request failures distinctly', () => {
-        const timeout = new AbortController();
-        const external = new AbortController();
-
-        expect(createRequestFailureMessage(timeout.signal, external.signal)).toBe('Request failed.');
-
-        external.abort();
-        expect(createRequestFailureMessage(timeout.signal, external.signal)).toBe('Request aborted.');
-
-        timeout.abort();
-        expect(createRequestFailureMessage(timeout.signal, external.signal)).toBe('Request timed out.');
     });
 });

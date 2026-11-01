@@ -23,11 +23,17 @@ const book = await request.as(Book);
 Builders are reusable values, with a single-use exception for native request streams. Supported
 methods are GET, HEAD, POST, PUT, PATCH, DELETE and OPTIONS. Base paths are joined with relative
 routes; absolute routes replace the base URL and retain configured policies, including auth.
-Only pass trusted absolute destinations to an authenticated client.
+Only pass trusted absolute destinations to an authenticated client. URL username/password fields
+are unsupported and reject before inspection or dispatch; use an auth policy instead. Relative joins
+preserve trailing route slashes: `/items` and `/items/` remain different resources. An empty or
+query-only route preserves the base pathname; slash-only routes append their exact slash count
+beneath the base prefix.
 
 `.path()` accepts the route's exact template keys and URI-encodes values. It rejects missing/extra
 keys and interpolated dot segments. Static C0 controls and leading/trailing ASCII spaces in route
 templates reject; use percent-encoded characters or parameter/query values for intentional data.
+Placeholder names are nonempty and exclude URL separators (`/`, `\`, `?`, `#`), braces, whitespace
+and controls. Dots, colons, hyphens, Unicode and names such as `constructor` remain supported.
 Query arrays become repeated values; later query calls replace
 matching keys. JSON bodies snapshot at attachment. Use `.multipart().field(...).file(...)` for forms.
 
@@ -44,12 +50,29 @@ matching keys. JSON bodies snapshot at attachment. Use `.multipart().field(...).
 JSON is `undefined` for HEAD, 204 and 205. An explicit schema receives that value and can accept or
 reject it. `.expect(...)` replaces the default 2xx status set. `.error(schema)` validates only an
 unexpected HTTP response body. Buffered transport/parsing/validation failures carry `AvirxError`
-with request, available response/status, and cause. Request-hook failures also become request
-failures. Throwing terminals preserve response/retry/error-hook exceptions. In result mode, an
-`AvirxError` escaping request execution becomes `ok:false`, including one from a response/retry hook
-or a transport-failure error hook. Error-hook exceptions during final status handling or body
-parsing/validation reject; other response/retry/error-hook exceptions also reject. See the
-[hook contract](./policies.md#hooks) for details.
+with request, available response/status, and cause. `error.kind` is the stable discriminator:
+`aborted`, `timeout`, `network`, `http`, `decode`, `validation`, `queue-full`, `queue-timeout`, or
+`unknown` for user-constructed errors without an explicit kind. Cancellation always identifies the
+current operation; a sibling error used as the abort reason remains its cause, not its HTTP status.
+
+Hooks and auth-provider failures reject their original thrown value from every terminal, including
+`.result()`. They do not become HTTP operation results or invoke operation error hooks recursively.
+Successful-response schema failures become `validation` operation failures. An `.error(schema)`
+failure retains `kind: 'http'` and the parser failure as its cause. Contract input parsing happens
+during preflight and rejects the original value. A custom fetch is the transport: its failures are
+normalized to the current request as network/cancellation failures.
+
+```ts
+const outcome = await request.result(Book);
+if (!outcome.ok && outcome.error.kind === 'aborted') {
+    console.log('Review cancelled.');
+}
+```
+
+A broad `AvirxRequestBuilder` is a common-capability view for helpers accepting GET/HEAD and
+body-capable builders, including templated routes. A helper that needs body methods should declare
+`AvirxRequestBuilder<Route, true>`. Concrete POST/PUT/PATCH builders retain those methods. Unknown
+properties are type errors even without `noUncheckedIndexedAccess`.
 
 ## Contracts and schemas
 
@@ -62,6 +85,11 @@ const found = await books.getBook({ path: { id: 'book_123' } });
 const existence = await books.exists.result({ path: { id: 'book_123' } });
 if (existence.ok) console.log(existence.response.headers); // data is undefined
 ```
+
+Contracts use own string keys, including non-enumerable own string properties. `then` is reserved
+to prevent Promise assimilation, and symbol keys reject at both the type and runtime boundary.
+Inherited keys are not part of the contract. Path-schema outputs must contain exactly the route's
+keys; awaited outputs with extra keys are rejected at the definition boundary.
 
 Use `.params(schema)`, `.query(schema)` and `.body(schema)` to declare contract inputs. Input
 validation completes before fetch; failures reject both the call and its `.result()` preflight.

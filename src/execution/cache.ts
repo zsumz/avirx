@@ -1,11 +1,12 @@
 import { isCachedResponse } from '../policy/cache/cache.js';
+import { isCacheWriteCurrent } from '../policy/cache/invalidation.js';
 import type { AvirxClientState, AvirxResponse } from '../types.js';
 
 export async function writeCacheResponse(
     clientState: AvirxClientState,
     response: AvirxResponse,
 ): Promise<void> {
-    if (isCachedResponse(response)) {
+    if (isCachedResponse(response) || !isCacheWriteCurrent(response, clientState.cache)) {
         return;
     }
 

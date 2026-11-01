@@ -14,6 +14,7 @@ describe('fetch execution', () => {
         await expect(
             avirx('https://api.example.com', { fetch: fetchImpl }).get('/missing').send(),
         ).rejects.toMatchObject({
+            kind: 'http',
             message: 'Unexpected HTTP status 404.',
             name: 'AvirxError',
             status: 404,
@@ -26,6 +27,7 @@ describe('fetch execution', () => {
         await expect(
             avirx('https://api.example.com', { fetch: fetchImpl }).post('/events').expect(201).send(),
         ).rejects.toMatchObject({
+            kind: 'http',
             message: 'Unexpected HTTP status 200.',
             response: {
                 status: 200,
@@ -42,6 +44,7 @@ describe('fetch execution', () => {
             id: 'usr_123',
         }).send()).rejects.toMatchObject({
             cause,
+            kind: 'network',
             message: 'Request failed.',
             request: {
                 method: 'GET',
@@ -65,6 +68,7 @@ describe('fetch execution', () => {
                 .get('/slow')
                 .send(),
         ).rejects.toMatchObject({
+            kind: 'timeout',
             message: 'Request timed out.',
             name: 'AvirxError',
             request: {

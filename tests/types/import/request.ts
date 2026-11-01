@@ -59,9 +59,9 @@ client.get('/workspaces/{workspaceId}/books/{bookId}').path({ workspaceId: 'wrk_
 // @ts-expect-error Extra path param.
 client.get('/users/{id}').path({ extra: 'nope', id: 'usr_123' });
 // @ts-expect-error Routes without placeholders do not expose .path().
-client.get('/users').path({});
+void client.get('/users').path;
 // @ts-expect-error GET builders do not expose request bodies.
-client.get('/users').body({ ok: true });
+void client.get('/users').body;
 
 void expectedStatus;
 void pathName;

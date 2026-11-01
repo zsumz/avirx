@@ -1,4 +1,5 @@
 import { AvirxError } from '../../error/avirx-error.js';
+import { elapsedNow } from '../../time/clock.js';
 import { createRateLimitQueue, type RateLimitQueueEntry } from './queue.js';
 import { createRateLimitWindow } from './window.js';
 import { normalizeRateLimit } from './options.js';
@@ -24,7 +25,7 @@ export function createRateLimitLimiter(input: AvirxRateLimitInput): AvirxRateLim
             return;
         }
 
-        const delay = starts.nextDelay(Date.now());
+        const delay = starts.nextDelay(elapsedNow());
         if (delay === undefined) {
             drain();
             return;
@@ -37,10 +38,10 @@ export function createRateLimitLimiter(input: AvirxRateLimitInput): AvirxRateLim
     }
 
     function drain(): void {
-        while (queue.size() > 0 && starts.canStart(Date.now())) {
+        while (queue.size() > 0 && starts.canStart(elapsedNow())) {
             const entry = queue.dequeue();
             if (entry) {
-                admit(entry, Date.now());
+                admit(entry, elapsedNow());
             }
         }
 
@@ -70,11 +71,11 @@ export function createRateLimitLimiter(input: AvirxRateLimitInput): AvirxRateLim
         async acquire(request, signal) {
             return new Promise((resolve, reject) => {
                 if (signal?.aborted) {
-                    reject(new AvirxError('Request aborted.', { cause: signal.reason, request }));
+                    reject(new AvirxError('Request aborted.', { cause: signal.reason, kind: 'aborted', request }));
                     return;
                 }
 
-                const now = Date.now();
+                const now = elapsedNow();
                 if (queue.size() === 0 && starts.canStart(now)) {
                     starts.record(now);
                     resolve();
@@ -82,7 +83,7 @@ export function createRateLimitLimiter(input: AvirxRateLimitInput): AvirxRateLim
                 }
 
                 if (options.queue !== undefined && queue.size() >= options.queue) {
-                    reject(new AvirxError('Rate limit queue is full.', { request }));
+                    reject(new AvirxError('Rate limit queue is full.', { kind: 'queue-full', request }));
                     return;
                 }
 
@@ -98,7 +99,7 @@ export function createRateLimitLimiter(input: AvirxRateLimitInput): AvirxRateLim
                 if (signal) {
                     entry.abort = () => {
                         remove(entry);
-                        reject(new AvirxError('Request aborted.', { cause: signal.reason, request }));
+                        reject(new AvirxError('Request aborted.', { cause: signal.reason, kind: 'aborted', request }));
                     };
                     signal.addEventListener('abort', entry.abort, { once: true });
                 }
@@ -106,7 +107,7 @@ export function createRateLimitLimiter(input: AvirxRateLimitInput): AvirxRateLim
                 if (options.queueTimeoutMs !== undefined) {
                     entry.timeout = setTimeout(() => {
                         remove(entry);
-                        reject(new AvirxError('Rate limit queue timed out.', { request }));
+                        reject(new AvirxError('Rate limit queue timed out.', { kind: 'queue-timeout', request }));
                     }, options.queueTimeoutMs);
                 }
 
@@ -120,7 +121,7 @@ export function createRateLimitLimiter(input: AvirxRateLimitInput): AvirxRateLim
         },
         requests: options.requests,
         starts() {
-            return starts.active(Date.now());
+            return starts.active(elapsedNow());
         },
     });
 }

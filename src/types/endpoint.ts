@@ -1,10 +1,16 @@
 import type { AvirxBodyValue } from './body.js';
 import type { HttpMethod } from './http.js';
 import type {
+    AvirxPathParamNames,
     AvirxPathParams,
     AvirxQueryInput,
 } from './request.js';
-import type { AvirxSchema } from './schema.js';
+import type { AvirxInferSchema, AvirxSchema } from './schema.js';
+
+type OutputKeys<Output> = Output extends unknown ? keyof Output : never;
+
+type ExactParamsSchema<Path extends string, Schema extends AvirxSchema<unknown>> =
+    Exclude<OutputKeys<AvirxInferSchema<Schema>>, AvirxPathParamNames<Path>> extends never ? unknown : never;
 
 export type AvirxEndpointState<
     Method extends HttpMethod = HttpMethod,
@@ -31,7 +37,7 @@ export type AvirxEndpointDefinition<
     ResponseSchema extends AvirxSchema<unknown> | undefined = undefined,
 > = Readonly<{
     params<Schema extends AvirxSchema<AvirxPathParams<Path> | PromiseLike<AvirxPathParams<Path>>>>(
-        schema: Schema,
+        schema: Schema & ExactParamsSchema<Path, Schema>,
     ): AvirxEndpointDefinition<Method, Path, Schema, QuerySchema, BodySchema, ResponseSchema>;
     query<Schema extends AvirxSchema<AvirxQueryInput | PromiseLike<AvirxQueryInput>>>(
         schema: Schema,
@@ -68,4 +74,7 @@ export type AvirxAnyEndpointDefinition = AvirxEndpointDefinition<
   AvirxSchema<unknown> | undefined
 >;
 
-export type AvirxEndpointContract = Readonly<Record<string, AvirxAnyEndpointDefinition>>;
+export type AvirxEndpointContract = Readonly<Record<string, AvirxAnyEndpointDefinition>> & Readonly<{
+    then?: never;
+    [key: symbol]: never;
+}>;

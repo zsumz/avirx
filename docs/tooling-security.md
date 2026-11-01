@@ -59,3 +59,9 @@ The earlier packed artifact contained 148,614 unpacked bytes. The stabilization 
 The smoke check keeps a 165,000-byte ceiling, 10% above the earlier 150,000-byte budget. Runtime
 dependencies remain empty, and the runtime still consists of one JavaScript entrypoint. The budget
 preserves readable output without hiding growth through a minifier change.
+
+The detailed review pass on top of `e8e6c12` measured 126 files and 167,733 unpacked bytes while
+adding the stable error/callback boundary, invalidation generation, clock and type-grammar helpers.
+The smoke limits are now 130 files and 175,000 bytes. This is a measured approximately 6.6% increase
+from the prior 157,413-byte candidate; one runtime JavaScript entrypoint and zero runtime dependencies
+remain enforced. No dependency upgrade or declaration bundling framework was added for this pass.

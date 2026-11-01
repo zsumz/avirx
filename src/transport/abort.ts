@@ -50,6 +50,7 @@ export function createAbortError(
 ): AvirxError {
     return new AvirxError('Request aborted.', {
         cause: signal?.reason,
+        kind: 'aborted',
         request,
     });
 }
@@ -58,20 +59,6 @@ export function createAbortReasonError(signal: AbortSignal | undefined): Error {
     return signal?.reason instanceof Error
         ? signal.reason
         : new Error('Request aborted.');
-}
-
-export function createRequestFailureMessage(
-    timeoutSignal: AbortSignal | undefined,
-    externalSignal: AbortSignal | undefined,
-): string {
-    if (timeoutSignal?.aborted) {
-        return 'Request timed out.';
-    }
-    if (externalSignal?.aborted) {
-        return 'Request aborted.';
-    }
-
-    return 'Request failed.';
 }
 
 export function createTimeoutSignal(timeoutMs: number | undefined): {

@@ -9,9 +9,15 @@ export function createContractClient<Contract extends AvirxEndpointContract>(
     clientState: AvirxClientState,
     contract: Contract,
 ): AvirxContractClient<Contract> {
+    if ('then' in contract) {
+        throw new TypeError('Contract endpoint name "then" is reserved.');
+    }
+    if (Object.getOwnPropertySymbols(contract).length > 0) {
+        throw new TypeError('Contract endpoint names must be strings.');
+    }
     const calls: Partial<Record<keyof Contract, unknown>> = {};
 
-    for (const key of Object.keys(contract) as Array<keyof Contract>) {
+    for (const key of Object.getOwnPropertyNames(contract) as Array<keyof Contract>) {
         Object.defineProperty(calls, key, {
             enumerable: true,
             value: createContractCall(clientState, contract[key]),

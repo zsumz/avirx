@@ -3,6 +3,7 @@ import type {
     AvirxPrimitiveValue,
     AvirxQueryInput,
     AvirxResult,
+    AvirxRequestState,
     AvirxSchema,
 } from '../types.js';
 
@@ -13,6 +14,7 @@ export type ContractRequestBuilder = Readonly<{
     path(params: Readonly<Record<string, AvirxPrimitiveValue>>): ContractRequestBuilder;
     query(query: AvirxQueryInput): ContractRequestBuilder;
     result(schema?: AvirxSchema<unknown>): Promise<AvirxResult<unknown>>;
+    state: AvirxRequestState;
 }>;
 
 export type ContractInputRecord = Readonly<Record<'body' | 'path' | 'query', unknown>>;

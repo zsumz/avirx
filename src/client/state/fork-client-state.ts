@@ -25,6 +25,8 @@ function copyOptionalClientState(
     state: AvirxClientState,
     patch: ClientStatePatch,
 ): void {
+    const allowCredentialRedirects = patch.allowCredentialRedirects ?? state.allowCredentialRedirects;
+    if (allowCredentialRedirects !== undefined) next.allowCredentialRedirects = allowCredentialRedirects;
     const cache = patch.cache ?? state.cache;
     if (cache) next.cache = cache;
     const fetchImpl = patch.fetch ?? state.fetch;

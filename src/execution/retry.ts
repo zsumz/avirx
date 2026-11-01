@@ -5,6 +5,8 @@ import { executeRequestAttempt } from './attempt.js';
 import { createHookContext, runErrorHooks } from './hooks.js';
 import { createRetryEvent, shouldRetryResponse } from './retry-decision.js';
 import { discardResponse } from './response-disposal.js';
+import { captureCacheWrite } from '../policy/cache/invalidation.js';
+import { takeRequestCacheWrite } from '../request/cache-write.js';
 import type {
     AvirxClientState,
     AvirxRequestState,
@@ -16,6 +18,7 @@ export async function executeRequest(
     clientState: AvirxClientState,
     state: AvirxRequestState,
 ): Promise<AvirxResponse> {
+    const cacheWrite = takeRequestCacheWrite(state) ?? captureCacheWrite(clientState.cache);
     const hooks = mergeHooks(clientState.hooks, state.hooks);
     const externalAbort = createAbortScope([clientState.signal, state.signal]);
     const retryEvents: AvirxRetryEvent[] = [];
@@ -23,7 +26,9 @@ export async function executeRequest(
 
     try {
         for (;;) {
-            const response = await executeRequestAttempt(clientState, state, retryEvents, hooks, externalAbort.signal);
+            const response = await executeRequestAttempt(
+                clientState, state, retryEvents, hooks, externalAbort.signal, cacheWrite,
+            );
             if (!shouldRetryResponse(response, state, attempt)) {
                 return response;
             }

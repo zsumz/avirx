@@ -1,6 +1,7 @@
 import { createCacheKey } from './keys.js';
 import { createCachedResponse, type CachedResponse } from './response.js';
 import { readCacheBody } from './read-body.js';
+import { elapsedNow } from '../../time/clock.js';
 import type { AvirxBuiltRequest, AvirxResponse } from '../../types.js';
 import type { NormalizedCacheOptions } from './options.js';
 
@@ -8,6 +9,7 @@ type StoreOptions = Pick<NormalizedCacheOptions, 'maxBytes' | 'maxEntries' | 'ma
 
 export function createCacheStore(options: StoreOptions): Readonly<{
     clear(): void;
+    generation(): number;
     get(request: AvirxBuiltRequest): AvirxResponse | undefined;
     set(request: AvirxBuiltRequest, response: AvirxResponse): Promise<void>;
     size(): number;
@@ -36,24 +38,27 @@ export function createCacheStore(options: StoreOptions): Readonly<{
             entries.clear();
             totalBytes = 0;
         },
+        generation() {
+            return generation;
+        },
         get(request) {
-            const now = Date.now();
+            const now = elapsedNow();
             pruneExpired(now);
             const key = createCacheKey(request, options.vary);
             const cached = entries.get(key);
             if (!cached) return undefined;
             entries.delete(key);
             entries.set(key, cached);
-            return createCachedResponse(request, cached, now);
+            return createCachedResponse(request, cached, Date.now());
         },
         async set(request, response) {
-            pruneExpired(Date.now());
+            pruneExpired(elapsedNow());
             const writeGeneration = generation;
             const limit = Math.min(options.maxBytes ?? options.maxTotalBytes, options.maxTotalBytes);
             const body = await readCacheBody(response.native.clone(), limit);
             if (body === undefined || writeGeneration !== generation) return;
 
-            const now = Date.now();
+            const now = elapsedNow();
             pruneExpired(now);
             const key = createCacheKey(request, options.vary);
             remove(key);
@@ -68,13 +73,13 @@ export function createCacheStore(options: StoreOptions): Readonly<{
                 headers: response.headers,
                 status: response.status,
                 statusText: response.statusText,
-                storedAt: now,
+                storedAt: Date.now(),
                 url: response.url,
             }));
             totalBytes += body.byteLength;
         },
         size() {
-            pruneExpired(Date.now());
+            pruneExpired(elapsedNow());
             return entries.size;
         },
     });

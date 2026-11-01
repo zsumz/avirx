@@ -42,6 +42,7 @@ describe('failure-mode torture tests', () => {
         sequence(server, 'GET', '/bad-json', [malformedJson('{ nope')]);
 
         await expect(avirx(server.origin).get('/bad-json').json()).rejects.toMatchObject({
+            kind: 'decode',
             message: 'Failed to parse response JSON.',
             status: 200,
         });
@@ -59,6 +60,7 @@ describe('failure-mode torture tests', () => {
 
         await expect(avirx(server.origin).get('/invalid-user').as(User)).rejects.toMatchObject({
             cause,
+            kind: 'validation',
             message: 'Response validation failed.',
             status: 200,
         });

@@ -9,6 +9,7 @@ export async function createUnexpectedStatusError<ErrorData>(
 ): Promise<AvirxError<ErrorData>> {
     const message = `Unexpected HTTP status ${String(response.status)}.`;
     const options = {
+        kind: 'http' as const,
         request: response.request,
         response,
         status: response.status,

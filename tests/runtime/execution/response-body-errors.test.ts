@@ -17,6 +17,7 @@ describe('buffered response body failures', () => {
 
         await expect(request[terminal]()).rejects.toMatchObject({
             cause,
+            kind: 'decode',
             name: 'AvirxError',
             request: { method: 'GET' },
             response: { native, status: 200 },

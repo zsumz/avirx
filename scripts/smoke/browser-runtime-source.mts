@@ -1,11 +1,13 @@
 import { browserAssertionsSource } from './browser-assertions-source.mts';
 import { browserCorsSource } from './browser-cors-source.mts';
 import { browserNativeSource } from './browser-native-source.mts';
+import { browserRedirectSource } from './browser-redirect-source.mts';
 
 export const browserRuntimeSource = `import { avirx, endpoint } from "/avirx.js";
 ${browserAssertionsSource}
 ${browserCorsSource}
 ${browserNativeSource}
+${browserRedirectSource}
 document.body.dataset.smokeStatus = "running";
 try {
   await runSmoke();
@@ -14,7 +16,6 @@ try {
   document.body.dataset.smokeStatus = "failed";
   document.body.dataset.smokeMessage = errorMessage(error);
 }
-
 async function runSmoke() {
 await runNativeSmoke();
 for (const name of ["fetch", "Headers", "Request", "Response", "URL", "FormData", "Blob"]) {
@@ -66,7 +67,6 @@ globalThis.fetch = async (input, init = {}) => {
 
   return json({ code: "missing" }, 404);
 };
-
 try {
   const User = {
     parse(input) {

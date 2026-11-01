@@ -67,5 +67,5 @@ export type AvirxContractCall<Endpoint extends AvirxAnyEndpointDefinition> = ((
 }>;
 
 export type AvirxContractClient<Contract extends AvirxEndpointContract> = Readonly<{
-    [Key in keyof Contract]: AvirxContractCall<Contract[Key]>;
-}>;
+    [Key in keyof Contract as Key extends symbol | 'then' ? never : Key]: AvirxContractCall<Contract[Key]>;
+}> & Readonly<{ then?: never }>;

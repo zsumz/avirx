@@ -1,4 +1,5 @@
 import { createRequestBuilder } from '../request/create-request-builder.js';
+import { captureRequestCacheWrite } from '../request/cache-write.js';
 import { parseWithSchema } from './schema.js';
 import { validateContractBody } from './validate-contract-body.js';
 import { validateContractPathParams } from './validate-contract-path.js';
@@ -15,6 +16,7 @@ export async function prepareContractRequest<Endpoint extends AvirxAnyEndpointDe
     definition: Endpoint,
     input: AvirxContractInput<Endpoint>,
 ): Promise<ContractRequestBuilder> {
+    const registerCacheWrite = captureRequestCacheWrite(clientState);
     const values = input as ContractInputRecord;
     const state = definition.state;
     let request = createRequestBuilder(
@@ -44,5 +46,6 @@ export async function prepareContractRequest<Endpoint extends AvirxAnyEndpointDe
         throw new TypeError(`Contract endpoint "${state.path}" does not accept body input.`);
     }
 
+    registerCacheWrite(request.state);
     return request;
 }

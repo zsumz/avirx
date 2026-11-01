@@ -21,23 +21,23 @@ client.get('/users/{id}/teams/{teamId}').path({ id: 'usr_123' });
 // @ts-expect-error Typed paths reject extra variable keys.
 client.get('/users/{id}/teams/{teamId}').path(extraTypedPathVariable);
 // @ts-expect-error GET requests do not expose .body().
-void client.get('/users').body({ email: 'a@example.com' });
+void client.get('/users').body;
 // @ts-expect-error GET requests do not expose .multipart().
-void client.get('/users').multipart();
+void client.get('/users').multipart;
 // @ts-expect-error HEAD requests do not expose .body().
-void client.head('/users').body({ email: 'a@example.com' });
+void client.head('/users').body;
 // @ts-expect-error HEAD requests do not expose .multipart().
-void client.head('/users').multipart();
+void client.head('/users').multipart;
 // @ts-expect-error Routes without params do not expose .path().
-void client.get('/users').path({});
+void client.get('/users').path;
 // @ts-expect-error Concurrency is a client policy, not a request policy.
-void client.get('/users').concurrency(2);
+void client.get('/users').concurrency;
 // @ts-expect-error Concurrency limits must be numeric.
 void client.concurrency('2');
 // @ts-expect-error Rate limiting is a client policy, not a request policy.
-void client.get('/users').rateLimit({ per: '1s', requests: 60 });
+void client.get('/users').rateLimit;
 // @ts-expect-error Cache is a client policy, not a request policy.
-void client.get('/users').cache({ ttl: '30s' });
+void client.get('/users').cache;
 // @ts-expect-error Cache ttl is required.
 void client.cache({});
 // @ts-expect-error Cache methods currently support cache-safe methods only.

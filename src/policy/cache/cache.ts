@@ -1,4 +1,5 @@
-import { forbidsCache, isPublicCacheResponse } from './eligibility.js';
+import { forbidsCache, hasConditionalHeaders, isPublicCacheResponse } from './eligibility.js';
+import { registerCachePolicy } from './invalidation.js';
 import { hasSensitiveHeaders } from './keys.js';
 import { createCacheStore } from './store.js';
 import { isWithinKnownMaxBytes } from './response.js';
@@ -26,7 +27,7 @@ export function createCachePolicy(input: AvirxCacheInput): AvirxCachePolicy {
     }
 
     function canCacheRequest(request: AvirxBuiltRequest): boolean {
-        return !request.authenticated && !forbidsCache(request.headers)
+        return !request.authenticated && !forbidsCache(request.headers) && !hasConditionalHeaders(request.headers)
       && options.methods.has(request.method as AvirxCacheMethod)
       && request.sensitiveHeaders.length === 0
       && !hasSensitiveHeaders(request.headers)
@@ -58,10 +59,12 @@ export function createCachePolicy(input: AvirxCacheInput): AvirxCachePolicy {
         ttlMs: options.ttlMs,
     } satisfies Omit<AvirxCachePolicy, 'maxBytes'>;
 
-    return Object.freeze(options.maxBytes === undefined
+    const cache = Object.freeze(options.maxBytes === undefined
         ? policy
         : {
             ...policy,
             maxBytes: options.maxBytes,
         });
+    registerCachePolicy(cache, store.generation);
+    return cache;
 }

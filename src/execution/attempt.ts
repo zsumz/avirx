@@ -1,9 +1,9 @@
 import { buildRequest } from '../request/build-request.js';
 import { resolveEffectiveAuth } from '../request/effective-auth.js';
 import { AvirxError } from '../error/avirx-error.js';
+import { CallbackFailure, callCallback } from '../error/callback-failure.js';
 import {
     createAbortScope,
-    createRequestFailureMessage,
     createTimeoutSignal,
     throwIfAborted,
 } from '../transport/abort.js';
@@ -12,6 +12,9 @@ import { createFetchInit } from './fetch-init.js';
 import { createHookContext, runErrorHooks } from './hooks.js';
 import { acquireRequestBudget } from './request-budget.js';
 import { registerResponseDisposal } from './response-disposal.js';
+import { createRequestFailure } from './request-failure.js';
+import { registerCacheResponse, type CacheWrite } from '../policy/cache/invalidation.js';
+import { elapsedNow } from '../time/clock.js';
 import { runHooks } from '../policy/hooks/hooks.js';
 import type {
     AvirxClientState,
@@ -27,15 +30,17 @@ export async function executeRequestAttempt(
     retryEvents: readonly AvirxRetryEvent[],
     hooks: AvirxHookRegistry,
     externalSignal: AbortSignal | undefined,
+    cacheWrite?: CacheWrite,
 ): Promise<AvirxResponse> {
     const built = buildRequest(
         clientState,
         state,
-        await resolveEffectiveAuth(clientState, state),
+        await callCallback(async () => resolveEffectiveAuth(clientState, state)),
     );
     const fetchImpl = clientState.fetch ?? globalThis.fetch;
     let release = (): void => undefined;
     let startedAt = Date.now();
+    let startedElapsedAt = elapsedNow();
     let timeout = createTimeoutSignal(undefined);
     let fetchAbort = createAbortScope([]);
     let native: Response | undefined;
@@ -54,19 +59,17 @@ export async function executeRequestAttempt(
         throwIfAborted(built, externalSignal);
         release = await acquireRequestBudget(clientState, built, externalSignal);
         startedAt = Date.now();
+        startedElapsedAt = elapsedNow();
         timeout = createTimeoutSignal(built.timeoutMs);
         fetchAbort = createAbortScope([externalSignal, timeout.signal, responseController.signal]);
         throwIfAborted(built, fetchAbort.signal);
 
-        native = await fetchImpl(built.url, createFetchInit(built, fetchAbort.signal));
-        registerResponseDisposal(native, responseController);
+        const init = createFetchInit(built, fetchAbort.signal, clientState.allowCredentialRedirects);
+        native = await fetchImpl(built.url, init);
+        registerResponseDisposal(native, responseController, fetchAbort.signal);
     } catch (cause) {
-        requestError = cause instanceof AvirxError
-            ? cause
-            : new AvirxError(createRequestFailureMessage(timeout.signal, externalSignal), {
-                cause: externalSignal?.aborted ? externalSignal.reason : cause,
-                request: built,
-            });
+        if (cause instanceof CallbackFailure) throw cause;
+        requestError = createRequestFailure(cause, built, timeout.signal, externalSignal, fetchAbort.signal);
     } finally {
         timeout.cancel();
         fetchAbort.cancel();
@@ -78,14 +81,17 @@ export async function executeRequestAttempt(
         throw requestError;
     }
     if (!native) {
-        throw new AvirxError('Request failed.', { request: built });
+        throw new AvirxError('Request failed.', { kind: 'network', request: built });
     }
 
-    return completeRequestAttempt(
+    const response = await completeRequestAttempt(
         native,
         built,
         startedAt,
+        startedElapsedAt,
         retryEvents,
         hooks,
     );
+    registerCacheResponse(response, cacheWrite);
+    return response;
 }

@@ -79,6 +79,7 @@ async function handleResultError<ErrorData>(
         ? cause
         : new AvirxError('Result processing failed.', {
             cause,
+            kind: 'decode',
             request: response.request,
             response,
             status: response.status,

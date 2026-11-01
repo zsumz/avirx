@@ -76,3 +76,9 @@ The hook-error documentation now describes the existing `.result()` execution-ca
 `failure/result-hook-errors.test.ts` covers nested request errors and error hooks at each phase.
 This clarification changes no runtime API or error behavior. Cross-origin browser cache bypass and
 route-template rejection are deliberate pre-v1 compatibility changes, documented in the guides.
+
+## Detailed review pass
+
+The subsequent review of `e8e6c12` is tracked item by item in
+[the detailed dispositions](./review-pass-2026-11.md). Its explicit contract decisions supersede the
+older phase-specific hook behavior and weaker in-flight-write invalidation wording.

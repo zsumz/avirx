@@ -1,5 +1,6 @@
 import { runHooks } from '../policy/hooks/hooks.js';
 import { createAvirxResponse } from '../response/create-response.js';
+import { elapsedNow } from '../time/clock.js';
 import { createHookContext } from './hooks.js';
 import { discardResponse } from './response-disposal.js';
 import type {
@@ -13,6 +14,7 @@ export async function completeRequestAttempt(
     native: Response,
     request: AvirxBuiltRequest,
     startedAt: number,
+    startedElapsedAt: number,
     retryEvents: readonly AvirxRetryEvent[],
     hooks: AvirxHookRegistry,
 ): Promise<AvirxResponse> {
@@ -21,7 +23,7 @@ export async function completeRequestAttempt(
         native,
         request,
         Object.freeze({
-            durationMs: endedAt - startedAt,
+            durationMs: elapsedNow() - startedElapsedAt,
             endedAt,
             ...retryEvents.length > 0 ? { retryEvents: Object.freeze([...retryEvents]) } : {},
             startedAt,

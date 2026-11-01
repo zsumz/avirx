@@ -34,6 +34,7 @@ export const expectedPublicTypes = new Set([
     'AvirxEndpointContract',
     'AvirxEndpointDefinition',
     'AvirxEndpointState',
+    'AvirxErrorKind',
     'AvirxExpectedStatusInput',
     'AvirxHeaders',
     'AvirxHookContext',

@@ -42,4 +42,14 @@ const api = avirx("https://api.example.test", { fetch: fetchImpl }).contract({
 
 const contractUser = await api.getUser({ path: { id: "usr_123" } });
 assert.equal(contractUser.id, "usr_123");
+
+const beforeInvalidContracts = calls.length;
+const client = avirx("https://api.example.test", { fetch: fetchImpl });
+await assert.rejects(async () => client.contract({ then: endpoint.post("/unintended") }), /reserved/);
+assert.throws(() => client.contract({ [Symbol("endpoint")]: endpoint.get("/unreachable") }), /must be strings/);
+assert.equal(calls.length, beforeInvalidContracts);
+const hidden = client.contract(Object.defineProperty({}, "getUser", {
+  value: endpoint.get("/users/{id}").params({ parse: (input) => input }).returns(User),
+}));
+assert.equal((await hidden.getUser({ path: { id: "usr_123" } })).id, "usr_123");
 `;

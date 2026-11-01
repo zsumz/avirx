@@ -2,31 +2,33 @@ import { describe, expect, it, vi } from 'vitest';
 import { avirx, type AvirxError } from 'avirx';
 
 describe('result hook error boundaries', () => {
-    it.each(['response', 'retry'] as const)('returns a nested request failure from a %s hook', async (event) => {
-        let nestedError: AvirxError | undefined;
-        const nested = avirx('https://nested.example.com', {
-            fetch: vi.fn<typeof fetch>().mockRejectedValue(new Error('nested request failed')),
-        }).on('error', (context) => {
-            nestedError = context.error();
+    describe.each(['send', 'json', 'text', 'download', 'as', 'result'] as const)('%s terminal', (terminal) => {
+        it.each(['request', 'response', 'retry'] as const)('rejects a nested %s hook failure', async (event) => {
+            let nestedError: AvirxError | undefined;
+            const nested = avirx('https://nested.example.com', {
+                fetch: vi.fn<typeof fetch>().mockRejectedValue(new Error('nested request failed')),
+            }).on('error', (context) => {
+                nestedError = context.error();
+            });
+            const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response('{}', {
+                status: event === 'retry' ? 503 : 200,
+            }));
+
+            const request = avirx('https://api.example.com', { fetch: fetchImpl })
+                .get('/outer')
+                .retry(1)
+                .on(event, async () => {
+                    await nested.get('/inner').send();
+                });
+            const execution = terminal === 'as' ? request.as({ parse: (value: unknown) => value })
+                : terminal === 'json' ? request.json()
+                    : terminal === 'result' ? request.result() : request[terminal]();
+            const failure = await execution.catch((error: unknown) => error);
+
+            expect(nestedError).toBeDefined();
+            expect(failure).toBe(nestedError);
+            expect(fetchImpl).toHaveBeenCalledTimes(event === 'request' ? 0 : 1);
         });
-        const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response('{}', {
-            status: event === 'retry' ? 503 : 200,
-        }));
-
-        const result = await avirx('https://api.example.com', { fetch: fetchImpl })
-            .get('/outer')
-            .retry(1)
-            .on(event, async () => {
-                await nested.get('/inner').send();
-            })
-            .result();
-
-        expect(nestedError).toBeDefined();
-        expect(result.ok).toBe(false);
-        if (result.ok) throw new Error('Expected error result.');
-        expect(result.error).toBe(nestedError);
-        expect(result.error.request.url.hostname).toBe('nested.example.com');
-        expect(fetchImpl).toHaveBeenCalledOnce();
     });
 
     it.each(['transport', 'status', 'json', 'validation'] as const)(
@@ -56,15 +58,8 @@ describe('result hook error boundaries', () => {
             };
             const execution = phase === 'validation' ? request.result(schema) : request.result();
 
-            if (phase === 'transport') {
-                const result = await execution;
-                expect(result.ok).toBe(false);
-                if (result.ok) throw new Error('Expected error result.');
-                expect(result.error).toBe(rethrown);
-            } else {
-                const failure = await execution.catch((error: unknown) => error);
-                expect(failure).toBe(rethrown);
-            }
+            const failure = await execution.catch((error: unknown) => error);
+            expect(failure).toBe(rethrown);
             expect(rethrown).toBeDefined();
         },
     );

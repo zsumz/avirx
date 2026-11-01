@@ -1,5 +1,6 @@
 export const browserNativeSource = `async function runNativeSmoke() {
   await runCorsSmoke();
+  await runRedirectSmoke();
   const api = avirx(location.origin).cache({ ttl: "60s" });
   await fetch("/native/login?user=alice");
   equal((await api.get("/native/private").json()).user, "alice");
