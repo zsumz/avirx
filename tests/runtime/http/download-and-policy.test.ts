@@ -15,6 +15,7 @@ describe('real HTTP coverage', () => {
         server.route('GET', '/exports/exp_123', () =>
             httpText('id,email\nusr_123,a@example.com\n', {
                 headers: {
+                    'cache-control': 'public',
                     'content-disposition': 'attachment; filename*=UTF-8\'\'users%20export.csv',
                     'content-length': '31',
                     'content-type': 'text/csv',

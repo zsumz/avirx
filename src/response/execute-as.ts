@@ -27,7 +27,7 @@ export async function executeAs<Schema extends AvirxSchema<unknown>>(
         throw error;
     }
     try {
-        const parsed = parseWithSchema(schema, data);
+        const parsed = await Promise.resolve(parseWithSchema(schema, data));
         await writeCacheResponse(clientState, response);
         return parsed;
     } catch (cause) {

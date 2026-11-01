@@ -23,7 +23,7 @@ export function createCachedResponse(
     cached: CachedResponse,
     now: number,
 ): AvirxResponse {
-    const body = cached.status === 204 || cached.status === 205
+    const body = request.method === 'HEAD' || cached.status === 204 || cached.status === 205
         ? null
         : cached.body.slice(0);
     const native = new Response(body, {
@@ -32,11 +32,14 @@ export function createCachedResponse(
         statusText: cached.statusText,
     });
 
-    const response = createAvirxResponse(native, request, Object.freeze({
-        durationMs: 0,
-        endedAt: now,
-        startedAt: now,
-    }));
+    const response = Object.freeze({
+        ...createAvirxResponse(native, request, Object.freeze({
+            durationMs: 0,
+            endedAt: now,
+            startedAt: now,
+        })),
+        url: cached.url,
+    });
     cachedResponses.add(response);
     return response;
 }

@@ -11,6 +11,7 @@ import { completeRequestAttempt } from './complete-attempt.js';
 import { createFetchInit } from './fetch-init.js';
 import { createHookContext, runErrorHooks } from './hooks.js';
 import { acquireRequestBudget } from './request-budget.js';
+import { registerResponseDisposal } from './response-disposal.js';
 import { runHooks } from '../policy/hooks/hooks.js';
 import type {
     AvirxClientState,
@@ -39,6 +40,7 @@ export async function executeRequestAttempt(
     let fetchAbort = createAbortScope([]);
     let native: Response | undefined;
     let requestError: AvirxError | undefined;
+    const responseController = new AbortController();
 
     try {
         throwIfAborted(built, externalSignal);
@@ -48,19 +50,21 @@ export async function executeRequestAttempt(
             return cached;
         }
 
+        await runHooks(hooks, 'request', createHookContext(built));
+        throwIfAborted(built, externalSignal);
         release = await acquireRequestBudget(clientState, built, externalSignal);
         startedAt = Date.now();
         timeout = createTimeoutSignal(built.timeoutMs);
-        fetchAbort = createAbortScope([externalSignal, timeout.signal]);
+        fetchAbort = createAbortScope([externalSignal, timeout.signal, responseController.signal]);
         throwIfAborted(built, fetchAbort.signal);
-        await runHooks(hooks, 'request', createHookContext(built));
 
         native = await fetchImpl(built.url, createFetchInit(built, fetchAbort.signal));
+        registerResponseDisposal(native, responseController);
     } catch (cause) {
         requestError = cause instanceof AvirxError
             ? cause
             : new AvirxError(createRequestFailureMessage(timeout.signal, externalSignal), {
-                cause,
+                cause: externalSignal?.aborted ? externalSignal.reason : cause,
                 request: built,
             });
     } finally {

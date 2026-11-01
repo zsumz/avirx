@@ -67,6 +67,16 @@ export function cloneBodyValue(body: AvirxBodyValue): AvirxBodyValue {
     return body;
 }
 
+export function defineBodySnapshot(target: object, body: AvirxBodyValue): void {
+    const snapshot = cloneBodyValue(body);
+    Object.defineProperty(target, 'body', {
+        enumerable: true,
+        get() {
+            return cloneBodyValue(snapshot);
+        },
+    });
+}
+
 export function cloneFormData(body: AvirxBodyValue): FormData {
     if (!(body instanceof FormData)) {
         throw new TypeError('Expected multipart body state to contain FormData.');

@@ -24,6 +24,7 @@ const timing: AvirxTimingMetadata = { durationMs: 10 };
 const retry: AvirxRetryMetadata = { attempts: 2, on: [503], safeOnly: true };
 const retryEvent: AvirxRetryEvent = { attempt: 1, delayMs: 10, status: 503 };
 const request: AvirxBuiltRequest = {
+    authenticated: false,
     bodyMetadata: { kind: 'none' },
     headers,
     method,

@@ -33,7 +33,7 @@ export function validateContractPathParams(
                 `Contract path param "${name}" must be a string, number, or boolean.`,
             );
         }
-        params[name] = paramValue;
+        Object.defineProperty(params, name, { enumerable: true, value: paramValue });
     }
 
     return Object.freeze(params);

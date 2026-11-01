@@ -20,7 +20,9 @@ export function createProductionMockApi(): ProductionMockApi {
             return jsonResponse({ id: 'slow', title: 'Slow catalog response' });
         }
         if (method === 'GET' && url.pathname === '/public/books/book_cache') {
-            return jsonResponse({ id: 'book_cache', title: 'A Wizard of Earthsea' });
+            return jsonResponse({ id: 'book_cache', title: 'A Wizard of Earthsea' }, {
+                headers: { 'cache-control': 'public' },
+            });
         }
         if (method === 'GET' && url.pathname.startsWith('/books/')) {
             return createBookResponse(url, authorization);

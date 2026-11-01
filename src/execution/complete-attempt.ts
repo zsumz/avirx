@@ -1,6 +1,7 @@
 import { runHooks } from '../policy/hooks/hooks.js';
 import { createAvirxResponse } from '../response/create-response.js';
 import { createHookContext } from './hooks.js';
+import { discardResponse } from './response-disposal.js';
 import type {
     AvirxBuiltRequest,
     AvirxHookRegistry,
@@ -26,6 +27,11 @@ export async function completeRequestAttempt(
             startedAt,
         }),
     );
-    await runHooks(hooks, 'response', createHookContext(request, { response }));
+    try {
+        await runHooks(hooks, 'response', createHookContext(request, { response }));
+    } catch (error) {
+        discardResponse(native);
+        throw error;
+    }
     return response;
 }

@@ -3,6 +3,7 @@ import { appendQuery, normalizeQuery } from '../transport/query.js';
 import { redactHeaders } from '../transport/redact.js';
 import { interpolatePath, joinUrl } from '../transport/url.js';
 import { freezeBuiltRequest } from './freeze-built-request.js';
+import { getEffectiveAuthPolicy } from './effective-auth.js';
 import type { BuildRequestAuth, MutableBuiltRequest } from './built-request-types.js';
 import type {
     AvirxBuiltRequest,
@@ -24,18 +25,14 @@ export function buildRequest(
         ...authQuery,
         ...state.query,
     });
-    const redactedUrl = hasQueryEntries(auth.redactedQuery)
-        ? appendQuery(joinUrl(clientState.baseUrl, path), {
-            ...normalizeQuery(auth.redactedQuery),
-            ...state.query,
-        })
-        : url;
+    const redactedUrl = redactAuthQuery(url, auth.redactedQuery);
     const headers = Object.freeze({
         ...clientState.headers,
         ...auth.headers ?? {},
         ...state.headers,
     });
     const built: MutableBuiltRequest = {
+        authenticated: getEffectiveAuthPolicy(clientState, state) !== undefined,
         bodyMetadata: state.bodyMetadata ?? classifyBody(undefined),
         headers,
         method: state.method,
@@ -55,9 +52,12 @@ export function buildRequest(
     return freezeBuiltRequest(built);
 }
 
-function hasQueryEntries(query: AvirxQueryInput | undefined): query is AvirxQueryInput {
-    if (query === undefined) return false;
-    return query instanceof URLSearchParams
-        ? !query.keys().next().done
-        : Object.keys(query).length > 0;
+function redactAuthQuery(url: URL, redactedQuery: AvirxQueryInput | undefined): URL {
+    const redacted = new URL(url.href);
+    if (redactedQuery !== undefined) {
+        for (const [name, value] of Object.entries(normalizeQuery(redactedQuery))) {
+            redacted.searchParams.set(name, String(value));
+        }
+    }
+    return redacted;
 }

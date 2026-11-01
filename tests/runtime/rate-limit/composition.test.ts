@@ -6,36 +6,34 @@ describe('rate-limit policy', () => {
         vi.useRealTimers();
     });
 
-    it('waits for rate-limit budget before acquiring concurrency slots', async () => {
+    it('spaces actual dispatches after a slow concurrency occupant', async () => {
         vi.useFakeTimers();
         vi.setSystemTime(0);
         const first = createDeferred<Response>();
-        const fetchImpl = vi
-            .fn<typeof fetch>()
-            .mockReturnValueOnce(first.promise)
-            .mockResolvedValueOnce(new Response('ok'));
+        const starts: number[] = [];
+        const fetchImpl = vi.fn<typeof fetch>(async () => {
+            starts.push(Date.now());
+            return starts.length === 1 ? first.promise : Promise.resolve(new Response('ok'));
+        });
         const client = avirx('https://api.example.com', { fetch: fetchImpl })
             .rateLimit({ per: '100ms', requests: 1 })
             .concurrency(1);
 
-        const firstRequest = client.get('/first').send();
-        const secondRequest = client.get('/second').send();
-
-        await vi.advanceTimersByTimeAsync(0);
-        expect(fetchImpl).toHaveBeenCalledOnce();
-        expect(client.state.rateLimit?.queued()).toBe(1);
-        expect(client.state.concurrency?.queued()).toBe(0);
-
-        await vi.advanceTimersByTimeAsync(100);
-        expect(client.state.concurrency?.queued()).toBe(1);
-        expect(fetchImpl).toHaveBeenCalledOnce();
+        const requests = ['/first', '/second', '/third'].map(async (route) => client.get(route).send());
+        await vi.advanceTimersByTimeAsync(500);
+        expect(starts).toEqual([0]);
+        expect(client.state.concurrency?.queued()).toBe(2);
+        expect(client.state.rateLimit?.queued()).toBe(0);
 
         first.resolve(new Response('ok'));
-        await firstRequest;
         await vi.advanceTimersByTimeAsync(0);
-
-        expect(fetchImpl).toHaveBeenCalledTimes(2);
-        await secondRequest;
+        expect(starts).toEqual([0, 500]);
+        await vi.advanceTimersByTimeAsync(99);
+        expect(starts).toHaveLength(2);
+        await vi.advanceTimersByTimeAsync(1);
+        await Promise.all(requests);
+        expect(starts).toEqual([0, 500, 600]);
+        expect(client.state.concurrency?.active()).toBe(0);
     });
 
     it('limits contract calls through the same client policy', async () => {

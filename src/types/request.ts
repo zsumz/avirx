@@ -40,6 +40,7 @@ export type AvirxQueryValue =
 export type AvirxQueryInput = URLSearchParams | Readonly<Record<string, AvirxQueryValue>>;
 
 export type AvirxBuiltRequest = Readonly<{
+    authenticated: boolean;
     body?: AvirxBodyValue;
     bodyMetadata: AvirxBodyMetadata;
     headers: AvirxHeaders;

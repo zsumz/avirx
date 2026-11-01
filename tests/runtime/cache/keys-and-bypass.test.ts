@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { avirx } from 'avirx';
+import { publicResponse } from '../../helpers/public-response.js';
 
 describe('cache policy', () => {
     afterEach(() => {
@@ -8,7 +9,7 @@ describe('cache policy', () => {
 
     it('keys cache entries by final URL and configured vary headers', async () => {
         const fetchImpl = vi.fn<typeof fetch>(async (input, init) =>
-            Promise.resolve(new Response(JSON.stringify({
+            Promise.resolve(publicResponse(JSON.stringify({
                 language: new Headers(init?.headers).get('accept-language'),
                 url: fetchInputUrl(input).href,
             }))),
@@ -27,7 +28,7 @@ describe('cache policy', () => {
     });
 
     it('shares cache state across cloned clients', async () => {
-        const fetchImpl = vi.fn<typeof fetch>(async () => Promise.resolve(new Response('shared')));
+        const fetchImpl = vi.fn<typeof fetch>(async () => Promise.resolve(publicResponse('shared')));
         const base = avirx('https://api.example.com', { fetch: fetchImpl }).cache({ ttl: '1s' });
         const clone = base.header('x-client', 'clone');
 
@@ -39,7 +40,7 @@ describe('cache policy', () => {
     });
 
     it('does not use cache for build, preview, or curl inspection', async () => {
-        const fetchImpl = vi.fn<typeof fetch>(async () => Promise.resolve(new Response('live')));
+        const fetchImpl = vi.fn<typeof fetch>(async () => Promise.resolve(publicResponse('live')));
         const client = avirx('https://api.example.com', { fetch: fetchImpl }).cache({ ttl: '1s' });
 
         await client.get('/inspect').build();
@@ -55,7 +56,7 @@ describe('cache policy', () => {
     });
 
     it('bypasses cache for authenticated requests', async () => {
-        const fetchImpl = vi.fn<typeof fetch>(async () => Promise.resolve(new Response('private')));
+        const fetchImpl = vi.fn<typeof fetch>(async () => Promise.resolve(publicResponse('private')));
         const bearer = avirx('https://api.example.com', { fetch: fetchImpl })
             .cache({ ttl: '1s' })
             .auth.bearer(() => 'token');
@@ -79,7 +80,7 @@ describe('cache policy', () => {
             const fetchImpl = vi.fn<typeof fetch>(async (_input, init) => {
                 const headers = new Headers(init?.headers);
                 count += 1;
-                return Promise.resolve(new Response(JSON.stringify({
+                return Promise.resolve(publicResponse(JSON.stringify({
                     count,
                     token: headers.get(headerName),
                 })));

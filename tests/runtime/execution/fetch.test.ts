@@ -32,12 +32,10 @@ describe('fetch execution', () => {
         expect(formatFetchInput(input)).toBe('https://api.example.com/v1/users/usr%20123?existing=1&tag=a&tag=b');
         expect(init).toMatchObject({
             body: '{"ok":true}',
-            headers: {
-                'content-type': 'application/json',
-                'x-request': 'req_123',
-            },
             method: 'POST',
         });
+        expect(new Headers(init?.headers).get('content-type')).toBe('application/json');
+        expect(new Headers(init?.headers).get('x-request')).toBe('req_123');
         expect(response.status).toBe(202);
         expect(response.statusText).toBe('Accepted');
         expect(response.ok).toBe(true);

@@ -24,27 +24,14 @@ export function createAbortScope(signals: ReadonlyArray<AbortSignal | undefined>
         };
     }
 
-    const controller = new AbortController();
-    const abort = (event: Event): void => {
-        const signal = event.target instanceof AbortSignal ? event.target : undefined;
-        controller.abort(signal?.reason);
-    };
-
-    for (const signal of activeSignals) {
-        if (signal.aborted) {
-            controller.abort(signal.reason);
-            break;
-        }
-        signal.addEventListener('abort', abort, { once: true });
+    if (typeof AbortSignal.any !== 'function') {
+        throw new TypeError('Combining request signals requires AbortSignal.any.');
     }
 
+    // Native composition follows the response body lifetime without retaining manual listeners.
     return {
-        cancel() {
-            for (const signal of activeSignals) {
-                signal.removeEventListener('abort', abort);
-            }
-        },
-        signal: controller.signal,
+        cancel: noop,
+        signal: AbortSignal.any(activeSignals),
     };
 }
 

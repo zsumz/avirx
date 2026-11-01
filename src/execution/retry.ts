@@ -4,6 +4,7 @@ import { mergeHooks, runHooks } from '../policy/hooks/hooks.js';
 import { executeRequestAttempt } from './attempt.js';
 import { createHookContext, runErrorHooks } from './hooks.js';
 import { createRetryEvent, shouldRetryResponse } from './retry-decision.js';
+import { discardResponse } from './response-disposal.js';
 import type {
     AvirxClientState,
     AvirxRequestState,
@@ -30,7 +31,11 @@ export async function executeRequest(
             attempt += 1;
             const event = createRetryEvent(attempt, response);
             retryEvents.push(event);
-            await runHooks(hooks, 'retry', createHookContext(response.request, { response, retry: event }));
+            try {
+                await runHooks(hooks, 'retry', createHookContext(response.request, { response, retry: event }));
+            } finally {
+                discardResponse(response.native);
+            }
             try {
                 await delay(event.delayMs, externalAbort.signal, response.request);
             } catch (error) {

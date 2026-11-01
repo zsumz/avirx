@@ -31,7 +31,7 @@ describe('fetch execution', () => {
         expect(data).toBeUndefined();
     });
 
-    it('parses HEAD responses as empty text without reading JSON', async () => {
+    it('treats HEAD responses as bodyless for text and JSON', async () => {
         const fetchImpl = vi.fn<typeof fetch>(async () => Promise.resolve(new Response(null, { status: 200 })));
 
         await expect(avirx('https://api.example.com', { fetch: fetchImpl }).head('/users').text()).resolves.toBe(
@@ -39,9 +39,7 @@ describe('fetch execution', () => {
         );
         await expect(
             avirx('https://api.example.com', { fetch: fetchImpl }).head('/users').json(),
-        ).rejects.toMatchObject({
-            message: 'Failed to parse response JSON.',
-        });
+        ).resolves.toBeUndefined();
     });
 
     it('throws AvirxError for invalid JSON', async () => {

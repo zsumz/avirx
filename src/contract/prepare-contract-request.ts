@@ -10,11 +10,11 @@ import type {
     AvirxContractInput,
 } from '../types.js';
 
-export function prepareContractRequest<Endpoint extends AvirxAnyEndpointDefinition>(
+export async function prepareContractRequest<Endpoint extends AvirxAnyEndpointDefinition>(
     clientState: AvirxClientState,
     definition: Endpoint,
     input: AvirxContractInput<Endpoint>,
-): ContractRequestBuilder {
+): Promise<ContractRequestBuilder> {
     const values = input as ContractInputRecord;
     const state = definition.state;
     let request = createRequestBuilder(
@@ -26,20 +26,20 @@ export function prepareContractRequest<Endpoint extends AvirxAnyEndpointDefiniti
     if (state.paramsSchema) {
         request = request.path(validateContractPathParams(
             state.path,
-            parseWithSchema(state.paramsSchema, values.path),
+            await parseWithSchema(state.paramsSchema, values.path),
         ));
     } else if (values.path !== undefined) {
         request = request.path(validateContractPathParams(state.path, values.path));
     }
 
     if (state.querySchema) {
-        request = request.query(validateContractQuery(parseWithSchema(state.querySchema, values.query)));
+        request = request.query(validateContractQuery(await parseWithSchema(state.querySchema, values.query)));
     } else if (values.query !== undefined) {
         throw new TypeError(`Contract endpoint "${state.path}" does not accept query input.`);
     }
 
     if (state.bodySchema) {
-        request = request.body(validateContractBody(parseWithSchema(state.bodySchema, values.body)));
+        request = request.body(validateContractBody(await parseWithSchema(state.bodySchema, values.body)));
     } else if (values.body !== undefined) {
         throw new TypeError(`Contract endpoint "${state.path}" does not accept body input.`);
     }

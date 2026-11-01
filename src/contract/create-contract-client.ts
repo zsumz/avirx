@@ -12,7 +12,10 @@ export function createContractClient<Contract extends AvirxEndpointContract>(
     const calls: Partial<Record<keyof Contract, unknown>> = {};
 
     for (const key of Object.keys(contract) as Array<keyof Contract>) {
-        calls[key] = createContractCall(clientState, contract[key]);
+        Object.defineProperty(calls, key, {
+            enumerable: true,
+            value: createContractCall(clientState, contract[key]),
+        });
     }
 
     return Object.freeze(calls) as AvirxContractClient<Contract>;

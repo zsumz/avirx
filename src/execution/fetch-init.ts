@@ -6,7 +6,7 @@ export function createFetchInit(
     signal: AbortSignal | undefined,
 ): RequestInit {
     const init: RequestInit & { duplex?: 'half' } = {
-        headers: request.headers,
+        headers: Object.entries(request.headers),
         method: request.method,
     };
 

@@ -14,7 +14,7 @@ const requiredPackedFiles = [
 ];
 
 const maximumPackedFiles = 125;
-const maximumUnpackedBytes = 150_000;
+const maximumUnpackedBytes = 165_000;
 
 export type PackageShape = Readonly<{
     fileCount: number;

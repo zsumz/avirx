@@ -32,14 +32,16 @@ export function interpolatePath(
         throw new TypeError(`Unexpected path params: ${extraNames.join(', ')}.`);
     }
 
-    return route.replace(/\{([^}]+)\}/gu, (_match, name: string) => {
+    const interpolated = route.replace(/\{([^}]+)\}/gu, (_match, name: string) => {
         const value = params[name];
-        if (value === undefined) {
+        if (!Object.hasOwn(params, name) || value === undefined) {
             throw new TypeError(`Missing path param "${name}".`);
         }
 
         return encodeURIComponent(String(value));
     });
+    rejectInterpolatedDotSegments(route, interpolated);
+    return interpolated;
 }
 
 export function extractPathParamNames(route: string): readonly string[] {
@@ -61,4 +63,15 @@ function isAbsoluteUrl(value: string): boolean {
 
 function trimSlashes(value: string): string {
     return value.replace(/^\/+|\/+$/gu, '');
+}
+
+function rejectInterpolatedDotSegments(route: string, interpolated: string): void {
+    const segments = (route.split(/[?#]/u)[0] ?? '').replaceAll('\\', '/').split('/');
+    const resolved = (interpolated.split(/[?#]/u)[0] ?? '').replaceAll('\\', '/').split('/');
+    for (const [index, segment] of segments.entries()) {
+        const decodedDots = resolved[index]?.replace(/%2e/giu, '.');
+        if (segment.includes('{') && (decodedDots === '.' || decodedDots === '..')) {
+            throw new TypeError('Path params must not produce dot path segments.');
+        }
+    }
 }

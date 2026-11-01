@@ -63,7 +63,7 @@ async function parseResultData(
     const data = await readTerminalJson(response);
     if (!schema) return data;
     try {
-        return parseWithSchema(schema, data);
+        return await parseWithSchema(schema, data);
     } catch (cause) {
         throw createValidationError(response, data, cause);
     }

@@ -30,10 +30,10 @@ export type AvirxEndpointDefinition<
     BodySchema extends AvirxSchema<unknown> | undefined = undefined,
     ResponseSchema extends AvirxSchema<unknown> | undefined = undefined,
 > = Readonly<{
-    params<Schema extends AvirxSchema<AvirxPathParams<Path>>>(
+    params<Schema extends AvirxSchema<AvirxPathParams<Path> | PromiseLike<AvirxPathParams<Path>>>>(
         schema: Schema,
     ): AvirxEndpointDefinition<Method, Path, Schema, QuerySchema, BodySchema, ResponseSchema>;
-    query<Schema extends AvirxSchema<AvirxQueryInput>>(
+    query<Schema extends AvirxSchema<AvirxQueryInput | PromiseLike<AvirxQueryInput>>>(
         schema: Schema,
     ): AvirxEndpointDefinition<Method, Path, ParamsSchema, Schema, BodySchema, ResponseSchema>;
     returns<Schema extends AvirxSchema<unknown>>(
@@ -44,7 +44,7 @@ export type AvirxEndpointDefinition<
   (Method extends 'GET' | 'HEAD'
       ? Readonly<{ body?: never }>
       : Readonly<{
-          body<Schema extends AvirxSchema<AvirxBodyValue>>(
+          body<Schema extends AvirxSchema<AvirxBodyValue | PromiseLike<AvirxBodyValue>>>(
               schema: Schema,
           ): AvirxEndpointDefinition<Method, Path, ParamsSchema, QuerySchema, Schema, ResponseSchema>;
       }>);

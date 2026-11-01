@@ -50,6 +50,10 @@ export function createRateLimitLimiter(input: AvirxRateLimitInput): AvirxRateLim
     function remove(entry: RateLimitQueueEntry): void {
         if (queue.remove(entry)) {
             clearQueueEntry(entry);
+            if (queue.size() === 0 && timer !== undefined) {
+                clearTimeout(timer);
+                timer = undefined;
+            }
         }
     }
 

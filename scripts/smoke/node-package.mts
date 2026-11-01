@@ -46,10 +46,12 @@ export async function verifyNodePackage(options: VerificationOptions): Promise<v
         include: ['types.ts'],
     });
 
-    options.log('Verifying TypeScript types from installed artifact');
-    runCommand(
-        process.execPath,
-        [join(options.root, 'node_modules/typescript/bin/tsc'), '-p', 'tsconfig.json', '--pretty', 'false'],
-        { cwd: options.packageDirectory },
-    );
+    for (const compiler of ['typescript-minimum', 'typescript']) {
+        options.log(`Verifying installed declarations with ${compiler}`);
+        runCommand(
+            process.execPath,
+            [join(options.root, 'node_modules', compiler, 'bin/tsc'), '-p', 'tsconfig.json', '--pretty', 'false'],
+            { cwd: options.packageDirectory },
+        );
+    }
 }

@@ -14,13 +14,12 @@ export function redactHeaders(
     replacement = '[redacted]',
 ): AvirxHeaders {
     const normalized = normalizeHeaders(headers);
-    const redacted: Record<string, string> = {};
-
-    for (const [name, value] of Object.entries(normalized)) {
-        redacted[name] = isSensitiveHeader(name) ? replacement : value;
-    }
-
-    return Object.freeze(redacted);
+    return Object.freeze(Object.fromEntries(
+        Object.entries(normalized).map(([name, value]) => [
+            name,
+            isSensitiveHeader(name) ? replacement : value,
+        ]),
+    ));
 }
 
 export function isSensitiveHeader(name: string): boolean {

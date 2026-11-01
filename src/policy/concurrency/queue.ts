@@ -12,46 +12,22 @@ export interface ConcurrencyQueue {
 }
 
 export function createConcurrencyQueue(): ConcurrencyQueue {
-    const entries: Array<ConcurrencyQueueEntry | undefined> = [];
-    let head = 0;
-    let size = 0;
-
-    function compact(): void {
-        if (head > 32 && head * 2 >= entries.length) {
-            entries.splice(0, head);
-            head = 0;
-        }
-    }
+    const entries: Set<ConcurrencyQueueEntry> = new Set();
 
     return {
         dequeue() {
-            while (head < entries.length) {
-                const entry = entries[head];
-                entries[head] = undefined;
-                head += 1;
-                if (entry) {
-                    size -= 1;
-                    compact();
-                    return entry;
-                }
-            }
-            compact();
-            return undefined;
+            const entry = entries.values().next().value;
+            if (entry) entries.delete(entry);
+            return entry;
         },
         enqueue(entry) {
-            entries.push(entry);
-            size += 1;
+            entries.add(entry);
         },
         remove(entry) {
-            const index = entries.indexOf(entry, head);
-            if (index !== -1) {
-                entries[index] = undefined;
-                size -= 1;
-                compact();
-            }
+            entries.delete(entry);
         },
         size() {
-            return size;
+            return entries.size;
         },
     };
 }

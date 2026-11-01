@@ -14,6 +14,7 @@ export type BuildRequestAuth = Readonly<{
 }>;
 
 export interface MutableBuiltRequest {
+    authenticated: boolean;
     body?: AvirxBodyValue;
     bodyMetadata: AvirxBuiltRequest['bodyMetadata'];
     headers: AvirxHeaders;

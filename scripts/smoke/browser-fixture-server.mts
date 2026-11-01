@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { createServer, type Server, type ServerResponse } from 'node:http';
 import { join } from 'node:path';
+import { createNativeBrowserHandler } from './browser-native-server.mts';
 import { browserRuntimeSource } from './browser-runtime-source.mts';
 
 export type BrowserFixtureServer = Readonly<{
@@ -15,7 +16,9 @@ export async function startBrowserFixtureServer(
         join(packageDirectory, 'node_modules/avirx/dist/index.js'),
         'utf8',
     );
+    const nativeHandler = createNativeBrowserHandler();
     const server = createServer((request, response) => {
+        if (nativeHandler(request, response)) return;
         const pathname = new URL(request.url ?? '/', 'http://localhost').pathname;
         if (pathname === '/') {
             send(response, 'text/html; charset=utf-8', browserPage);
@@ -68,6 +71,7 @@ async function listen(server: Server): Promise<void> {
 
 async function close(server: Server): Promise<void> {
     await new Promise<void>((resolve, reject) => {
+        server.closeAllConnections();
         server.close((error) => {
             if (error === undefined) {
                 resolve();

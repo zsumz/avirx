@@ -1,7 +1,9 @@
 import { browserAssertionsSource } from './browser-assertions-source.mts';
+import { browserNativeSource } from './browser-native-source.mts';
 
 export const browserRuntimeSource = `import { avirx, endpoint } from "/avirx.js";
 ${browserAssertionsSource}
+${browserNativeSource}
 document.body.dataset.smokeStatus = "running";
 
 try {
@@ -13,14 +15,13 @@ try {
 }
 
 async function runSmoke() {
-
+await runNativeSmoke();
 for (const name of ["fetch", "Headers", "Request", "Response", "URL", "FormData", "Blob"]) {
   equal(typeof globalThis[name], "function", \`Expected browser Web API global \${name}\`);
 }
 
 const seen = [];
 const previousFetch = globalThis.fetch;
-
 globalThis.fetch = async (input, init = {}) => {
   assert(input instanceof URL, "Avirx should pass URL values accepted by browser fetch.");
 
@@ -139,7 +140,6 @@ try {
 } finally {
   globalThis.fetch = previousFetch;
 }
-
 function json(value, status = 200) {
   return new Response(JSON.stringify(value), {
     headers: { "content-type": "application/json" },

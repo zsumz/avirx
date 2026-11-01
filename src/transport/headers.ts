@@ -3,14 +3,15 @@ import type { AvirxHeaders } from '../types.js';
 export function normalizeHeaders(input?: HeadersInit | AvirxHeaders): AvirxHeaders {
     assertNoUndefinedHeaderValues(input);
 
-    const headers = new Headers(input);
-    const normalized: Record<string, string> = {};
-
+    const init = input !== undefined && !(input instanceof Headers) && !Array.isArray(input)
+        ? Object.entries(input)
+        : input;
+    const headers = new Headers(init);
+    const entries: Array<[string, string]> = [];
     headers.forEach((value, name) => {
-        normalized[name.toLowerCase()] = value;
+        entries.push([name, value]);
     });
-
-    return Object.freeze(normalized);
+    return Object.freeze(Object.fromEntries(entries));
 }
 
 export function normalizeHeader(name: string, value: string): AvirxHeaders {

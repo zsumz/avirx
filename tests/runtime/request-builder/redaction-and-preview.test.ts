@@ -63,7 +63,7 @@ describe('HTTP method builders', () => {
                 'curl -X POST \'https://api.example.com/events?api_key=%5Bredacted%5D\'',
                 '  -H \'authorization: [redacted]\'',
                 '  -H \'content-type: application/json\'',
-                '  -d \'{"ok":true}\'',
+                '  --data-raw \'{"ok":true}\'',
             ].join(' \\\n'),
             headers: {
                 authorization: '[redacted]',

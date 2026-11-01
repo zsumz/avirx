@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { avirx } from 'avirx';
+import { publicResponse } from '../../helpers/public-response.js';
 
 describe('cache policy', () => {
     afterEach(() => {
@@ -8,7 +9,7 @@ describe('cache policy', () => {
 
     it('caches GET success responses with fresh readable bodies', async () => {
         const fetchImpl = vi.fn<typeof fetch>(async () =>
-            Promise.resolve(new Response(JSON.stringify({ count: 1 }), {
+            Promise.resolve(publicResponse(JSON.stringify({ count: 1 }), {
                 headers: { 'content-type': 'application/json' },
             })),
         );
@@ -29,7 +30,7 @@ describe('cache policy', () => {
 
     it('caches download terminal responses', async () => {
         const fetchImpl = vi.fn<typeof fetch>(async () =>
-            Promise.resolve(new Response('export', {
+            Promise.resolve(publicResponse('export', {
                 headers: {
                     'content-disposition': 'attachment; filename="export.txt"',
                     'content-type': 'text/plain',
@@ -50,10 +51,10 @@ describe('cache policy', () => {
     it('skips caching responses larger than maxBytes', async () => {
         const fetchImpl = vi
             .fn<typeof fetch>()
-            .mockResolvedValueOnce(new Response('large', {
+            .mockResolvedValueOnce(publicResponse('large', {
                 headers: { 'content-length': '5' },
             }))
-            .mockResolvedValueOnce(new Response('ok', {
+            .mockResolvedValueOnce(publicResponse('ok', {
                 headers: { 'content-length': '2' },
             }));
         const client = avirx('https://api.example.com', { fetch: fetchImpl }).cache({
@@ -72,8 +73,8 @@ describe('cache policy', () => {
     it('skips caching unknown-size responses when maxBytes is configured', async () => {
         const fetchImpl = vi
             .fn<typeof fetch>()
-            .mockResolvedValueOnce(new Response('ok'))
-            .mockResolvedValueOnce(new Response('fresh'));
+            .mockResolvedValueOnce(publicResponse('ok'))
+            .mockResolvedValueOnce(publicResponse('fresh'));
         const client = avirx('https://api.example.com', { fetch: fetchImpl }).cache({
             maxBytes: 2,
             ttl: '1s',
@@ -88,7 +89,7 @@ describe('cache policy', () => {
 
     it('skips caching download responses larger than maxBytes', async () => {
         const fetchImpl = vi.fn<typeof fetch>(async () =>
-            Promise.resolve(new Response('export', {
+            Promise.resolve(publicResponse('export', {
                 headers: {
                     'content-disposition': 'attachment; filename="export.txt"',
                     'content-type': 'text/plain',

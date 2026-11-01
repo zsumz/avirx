@@ -4,6 +4,7 @@ export type HttpTestRequest = Readonly<{
     headers: IncomingHttpHeaders;
     method: string;
     rawBody: string;
+    rawHeaders: readonly string[];
     receivedAt: number;
     url: URL;
 }>;

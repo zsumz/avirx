@@ -58,23 +58,32 @@ const api = avirx(baseUrl).cache({
 });
 ```
 
-The cache is an in-memory store owned by that client policy. It defaults to `GET`, varies on `accept`,
-and accepts `HEAD` only when requested explicitly. Entries expire lazily according to `ttl`.
+The cache is a bounded, in-memory TTL store for **explicitly public reference data**. A response must
+include `Cache-Control: public`; opting a client into caching never overrides a server's privacy
+instructions. Responses with `private`, `no-store`, `no-cache`, visible `Set-Cookie`, `Vary: *`, partial content,
+or a `Vary` field absent from configured `vary` are ineligible. Requests with `no-store`/`no-cache`, an
+auth policy, or sensitive headers bypass it. This covers ambient browser cookie sessions by requiring
+the server to explicitly classify reusable data as public. A server must not mark user-specific data
+public.
 
-A request bypasses caching when it:
+It defaults to `GET`, varies on `accept`, and allows explicit `HEAD`. This is a TTL memoizer;
+it does not perform HTTP revalidation, combine ranges, or infer server freshness. `ttl` controls
+freshness within the eligible public-data boundary.
 
-- uses a method outside the configured `GET` or `HEAD` set;
-- contains an auth policy or a sensitive header;
-- has a redacted URL that differs from the real URL.
+Default limits are **128 entries** and **16 MiB total body bytes**. Set `maxEntries` and
+`maxTotalBytes` to change these finite limits. `maxBytes` optionally imposes a smaller per-response
+limit and requires valid `Content-Length` metadata. Body reads stop at the effective size limit;
+expired entries are reclaimed during normal access and writes, and live entries use least-recently-used
+eviction. Expired data can remain idle until the next cache operation, but storage stays bounded.
 
-Only successful 2xx responses are stored. With `maxBytes`, a response must provide a valid
-`Content-Length` within the limit and its cloned body must also remain within the limit. A cache hit
-returns a fresh `Response` backed by a copy of the stored bytes and reports zero-duration timing.
+Call `api.state.cache?.clear()` to invalidate all entries, including writes already in flight.
+Derived clients share the same policy store until a new `.cache(...)` policy is installed.
 
-Cache lookup happens before admission policies and hooks. A hit therefore does not consume
-rate-limit or concurrency capacity and does not run request or response hooks. Cache writes happen
-after the selected terminal has processed the response successfully; invalid JSON or schema output is
-not cached.
+Cache lookup happens before admission and hooks. Hits consume no network budgets or hooks.
+Buffered terminals write only after successful parsing and awaited validation. `.send()` can read
+an existing hit but never buffers a network response for caching, so streaming remains immediate.
+A hit returns fresh body bytes and zero-duration timing. `AvirxResponse.url` preserves the original
+final URL; its native `Response` is synthetic and cannot preserve native redirect/type metadata.
 
 ## Concurrency
 
@@ -101,8 +110,12 @@ The limiter uses a rolling start-time window and admits queued requests in FIFO 
 the number of waiters; zero disables waiting. `queueTimeout` rejects a request that waits too long.
 Abort signals also remove queued requests immediately.
 
-Rate-limit admission occurs before concurrency admission. This means an admitted request may still
-wait for a concurrency slot, but concurrency pressure does not consume additional rate-limit starts.
+Request hooks finish before admission. A request acquires a concurrency slot, then rate permission
+immediately before invoking fetch. Waiting requests cannot accumulate old rate reservations behind a
+slow concurrency occupant or asynchronous hook. A concurrency slot remains occupied while waiting
+for rate permission and is released if that wait fails. FIFO order begins when requests reach each
+queue; hook completion can affect arrival order. `queue`/`queueTimeout` apply to the rate queue,
+not the separate concurrency queue. Use an `AbortSignal` to bound all queue waits.
 
 ## Hooks
 
@@ -115,10 +128,14 @@ const api = avirx(baseUrl).on('response', ({ request, response }) => {
 Supported events are `request`, `response`, `retry`, and `error`. Client hooks run before request
 hooks for the same event, and hooks run sequentially in registration order.
 
-- `request` runs after policy admission and immediately before each network attempt.
+- `request` runs before policy admission for each network attempt; it can run while another request
+  owns capacity. It does not consume a rate start if it throws.
 - `response` runs for each network response before retry evaluation.
 - `retry` runs after the retry event is created and before its delay.
 - `error` runs for Avirx transport, status, abort, timeout, JSON, and validation failures.
 
 Hook failures are not swallowed. A throwing hook stops the active operation, so hook code should be
 small, bounded, and independently reliable.
+
+Hooks and auth providers are user-owned asynchronous code. Avirx does not impose a callback timeout;
+keep them bounded. Fetch timeouts begin at dispatch, after hooks and queue waits.

@@ -20,11 +20,8 @@ describe('fetch execution', () => {
         const response = await request.send();
 
         expect(key).toHaveBeenCalledOnce();
-        expect(fetchImpl.mock.calls[0]?.[1]).toMatchObject({
-            headers: {
-                'x-api-key': 'secret-key',
-            },
-        });
+        expect(new Headers(fetchImpl.mock.calls[0]?.[1]?.headers).get('x-api-key'))
+            .toBe('secret-key');
         expect(response.request.redactedHeaders['x-api-key']).toBe('[redacted]');
     });
 
@@ -57,16 +54,9 @@ describe('fetch execution', () => {
             .auth.apiKey('x-request-key', () => 'request-key')
             .send();
 
-        expect(fetchImpl.mock.calls[0]?.[1]).toMatchObject({
-            headers: {
-                'x-request-key': 'request-key',
-            },
-        });
-        expect(fetchImpl.mock.calls[0]?.[1]).not.toMatchObject({
-            headers: {
-                'x-api-key': 'client-key',
-            },
-        });
+        expect(new Headers(fetchImpl.mock.calls[0]?.[1]?.headers).get('x-request-key'))
+            .toBe('request-key');
+        expect(new Headers(fetchImpl.mock.calls[0]?.[1]?.headers).has('x-api-key')).toBe(false);
     });
 });
 
