@@ -52,6 +52,24 @@ describe('generated curl equivalence', () => {
         }
     });
 
+    it.skipIf(!curlAvailable)('preserves explicit empty headers without curl defaults', async () => {
+        const server = await startHttpTestServer();
+        try {
+            server.route('POST', '/', () => httpText('ok'));
+            const headers = { 'content-type': '', 'x-empty': '', accept: '', 'user-agent': '' };
+            const request = avirx(server.origin).post('/').headers(headers).body('hello');
+            await request.text();
+            await runFile('/bin/sh', ['-c', await request.curl()], { timeout: 5000 });
+            expect(server.requests).toHaveLength(2);
+            for (const captured of server.requests) {
+                expect(captured.headers).toMatchObject(headers);
+                expect(captured.rawBody).toBe('hello');
+            }
+        } finally {
+            await server.close();
+        }
+    });
+
     it.skipIf(!curlAvailable)('sends literal @ text and the same effective content type as fetch', async () => {
         const directory = await mkdtemp(join(tmpdir(), 'avirx-curl-'));
         const filename = join(directory, 'marker.txt');

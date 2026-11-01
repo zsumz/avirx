@@ -39,6 +39,24 @@ describe('cache policy', () => {
         expect(base.state.cache).toBe(clone.state.cache);
     });
 
+    it('distinguishes absent and explicitly empty vary headers', async () => {
+        const fetchImpl = vi.fn<typeof fetch>(async (_input, init) => {
+            const headers = new Headers(init?.headers);
+            const body = headers.has('x-variant') ? `present:${headers.get('x-variant') ?? ''}` : 'absent';
+            return Promise.resolve(publicResponse(body, { headers: { vary: 'X-Variant' } }));
+        });
+        const client = avirx('https://api.example.com', { fetch: fetchImpl }).cache({
+            ttl: '1s', vary: ['x-variant'],
+        });
+
+        expect(await client.get('/catalog').text()).toBe('absent');
+        expect(await client.get('/catalog').header('x-variant', '').text()).toBe('present:');
+        expect(await client.get('/catalog').text()).toBe('absent');
+        expect(await client.get('/catalog').header('x-variant', '').text()).toBe('present:');
+        expect(fetchImpl).toHaveBeenCalledTimes(2);
+        expect(client.state.cache?.size()).toBe(2);
+    });
+
     it('does not use cache for build, preview, or curl inspection', async () => {
         const fetchImpl = vi.fn<typeof fetch>(async () => Promise.resolve(publicResponse('live')));
         const client = avirx('https://api.example.com', { fetch: fetchImpl }).cache({ ttl: '1s' });

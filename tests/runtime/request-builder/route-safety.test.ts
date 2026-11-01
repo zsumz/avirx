@@ -11,6 +11,33 @@ describe('route safety', () => {
         expect(fetchImpl).not.toHaveBeenCalled();
     });
 
+    it.each([
+        ' /users/{id}',
+        '/users/{id} ',
+        ' https://example.com/users/{id}',
+        'https://example.com/users/{id} ',
+        'https://example.com/users/\t{id}',
+        ...Array.from({ length: 32 }, (_, code) => `/users/${String.fromCharCode(code)}{id}` as const),
+    ] as const)('rejects unsafe static route whitespace and controls in %j', async (route) => {
+        const fetchImpl = vi.fn<typeof fetch>();
+        const request = avirx('https://example.com/api', { fetch: fetchImpl })
+            .delete(route).path({ id: '..' });
+        for (const inspect of [request.build, request.preview, request.curl, request.send]) {
+            await expect(inspect()).rejects.toThrow('Route templates');
+        }
+        expect(fetchImpl).not.toHaveBeenCalled();
+    });
+
+    it('preserves interior spaces and encoded whitespace without changing the target', async () => {
+        const api = avirx('https://example.com/api');
+        const spaced = await api.get('/user groups/{id}').path({ id: 'a b' }).build();
+        expect(spaced.url.pathname).toBe('/api/user%20groups/a%20b');
+        const encoded = await api.get('/users/%09{id}').path({ id: '..' }).build();
+        expect(encoded.url.pathname).toBe('/api/users/%09..');
+        const parameter = await api.get('/users/{id}').path({ id: '\t..' }).build();
+        expect(parameter.url.pathname).toBe('/api/users/%09..');
+    });
+
     it('rejects dot segments formed by embedded and adjacent placeholders', async () => {
         const api = avirx('https://example.com/api');
         await expect(api.get('/users/.{id}').path({ id: '.' }).build())

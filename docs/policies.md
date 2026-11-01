@@ -66,6 +66,15 @@ auth policy, or sensitive headers bypass it. This covers ambient browser cookie 
 the server to explicitly classify reusable data as public. A server must not mark user-specific data
 public.
 
+Only unfiltered native response types `basic` and `default` are eligible. Browser `cors` responses
+always bypass storage, including responses that expose `Vary`: CORS filtering can hide eligibility
+metadata, so Avirx does not infer that missing headers were absent on the wire. Same-origin browser
+responses and Node fetch remain eligible when the other public-data rules pass. A custom fetch must
+preserve accurate, unfiltered response metadata to use this cache safely.
+
+Configured vary headers distinguish a missing field from an explicitly empty value. Both header
+presence and value participate in the key.
+
 It defaults to `GET`, varies on `accept`, and allows explicit `HEAD`. This is a TTL memoizer;
 it does not perform HTTP revalidation, combine ranges, or infer server freshness. `ttl` controls
 freshness within the eligible public-data boundary.
@@ -134,8 +143,12 @@ hooks for the same event, and hooks run sequentially in registration order.
 - `retry` runs after the retry event is created and before its delay.
 - `error` runs for Avirx transport, status, abort, timeout, JSON, and validation failures.
 
-Hook failures are not swallowed. A throwing hook stops the active operation, so hook code should be
-small, bounded, and independently reliable.
+A throwing hook stops the active operation; keep hook code small, bounded, and independently
+reliable. Throwing terminals propagate response/retry/error-hook exceptions unchanged. In `.result()`,
+an `AvirxError` escaping request execution becomes `ok: false`, including errors from response/retry
+hooks or an error hook handling a transport failure. Error-hook exceptions during final HTTP status
+handling or body parsing/validation reject, including `AvirxError`; other response/retry/error-hook
+exceptions also reject. Request-hook failures remain normalized as request failures.
 
 Hooks and auth providers are user-owned asynchronous code. Avirx does not impose a callback timeout;
 keep them bounded. Fetch timeouts begin at dispatch, after hooks and queue waits.

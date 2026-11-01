@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { createServer, type Server, type ServerResponse } from 'node:http';
 import { join } from 'node:path';
+import { handleCorsBrowserRequest } from './browser-cors-server.mts';
 import { createNativeBrowserHandler } from './browser-native-server.mts';
 import { browserRuntimeSource } from './browser-runtime-source.mts';
 
@@ -34,15 +35,29 @@ export async function startBrowserFixtureServer(
         }
         response.writeHead(404).end();
     });
-    await listen(server);
+    const corsServer = createServer(handleCorsBrowserRequest);
+    try {
+        await listen(server);
+        await listen(corsServer);
+    } catch (error) {
+        if (server.listening) await close(server);
+        if (corsServer.listening) await close(corsServer);
+        throw error;
+    }
     const address = server.address();
-    if (address === null || typeof address === 'string') {
+    const corsAddress = corsServer.address();
+    if (address === null || typeof address === 'string'
+        || corsAddress === null || typeof corsAddress === 'string') {
         await close(server);
+        await close(corsServer);
         throw new Error('Browser fixture server did not bind to a TCP port.');
     }
     return {
-        close: async () => close(server),
-        url: `http://127.0.0.1:${String(address.port)}`,
+        async close() {
+            await Promise.all([close(server), close(corsServer)]);
+        },
+        url: `http://127.0.0.1:${String(address.port)}/?corsOrigin=`
+            + encodeURIComponent(`http://127.0.0.1:${String(corsAddress.port)}`),
     };
 }
 

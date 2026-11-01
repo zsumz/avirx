@@ -24,6 +24,7 @@ export function interpolatePath(
     route: string,
     params: Readonly<Record<string, AvirxPrimitiveValue>>,
 ): string {
+    validateRouteTemplate(route);
     const expectedNames = new Set(extractPathParamNames(route));
     const providedNames = Object.keys(params);
     const extraNames = providedNames.filter((name) => !expectedNames.has(name));
@@ -63,6 +64,13 @@ function isAbsoluteUrl(value: string): boolean {
 
 function trimSlashes(value: string): string {
     return value.replace(/^\/+|\/+$/gu, '');
+}
+
+function validateRouteTemplate(route: string): void {
+    if (route.startsWith(' ') || route.endsWith(' ')
+        || Array.from(route).some((character) => character.charCodeAt(0) < 32)) {
+        throw new TypeError('Route templates must not contain control characters or leading/trailing spaces.');
+    }
 }
 
 function rejectInterpolatedDotSegments(route: string, interpolated: string): void {

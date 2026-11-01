@@ -6,6 +6,10 @@ export function forbidsCache(headers: AvirxHeaders): boolean {
 }
 
 export function isPublicCacheResponse(response: AvirxResponse, vary: readonly string[]): boolean {
+    if (response.native.type !== 'basic' && response.native.type !== 'default') {
+        return false;
+    }
+
     const directives = cacheDirectives(response.headers['cache-control']);
     if (!response.ok || response.status === 206 || response.headers['content-range'] !== undefined
         || !directives?.has('public') || directives.has('private') || forbidsCache(response.headers)

@@ -26,7 +26,9 @@ routes; absolute routes replace the base URL and retain configured policies, inc
 Only pass trusted absolute destinations to an authenticated client.
 
 `.path()` accepts the route's exact template keys and URI-encodes values. It rejects missing/extra
-keys and interpolated dot segments. Query arrays become repeated values; later query calls replace
+keys and interpolated dot segments. Static C0 controls and leading/trailing ASCII spaces in route
+templates reject; use percent-encoded characters or parameter/query values for intentional data.
+Query arrays become repeated values; later query calls replace
 matching keys. JSON bodies snapshot at attachment. Use `.multipart().field(...).file(...)` for forms.
 
 ## Choosing a terminal
@@ -43,8 +45,11 @@ JSON is `undefined` for HEAD, 204 and 205. An explicit schema receives that valu
 reject it. `.expect(...)` replaces the default 2xx status set. `.error(schema)` validates only an
 unexpected HTTP response body. Buffered transport/parsing/validation failures carry `AvirxError`
 with request, available response/status, and cause. Request-hook failures also become request
-failures. Response/retry/error-hook failures propagate directly; result mode does not hide arbitrary
-callback/programming failures.
+failures. Throwing terminals preserve response/retry/error-hook exceptions. In result mode, an
+`AvirxError` escaping request execution becomes `ok:false`, including one from a response/retry hook
+or a transport-failure error hook. Error-hook exceptions during final status handling or body
+parsing/validation reject; other response/retry/error-hook exceptions also reject. See the
+[hook contract](./policies.md#hooks) for details.
 
 ## Contracts and schemas
 

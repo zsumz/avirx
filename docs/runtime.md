@@ -57,7 +57,10 @@ settle; Avirx checks cancellation after they complete. A rate-limit `queueTimeou
 they cannot be replayed safely. The default cURL renderer omits multipart, binary, and stream bodies
 instead of consuming or misrepresenting them. Inspection returns independent copies of replayable
 mutable bodies. Streams retain their native single-use identity. Path parameters that form a complete
-`.` or `..` segment are rejected before URL normalization can change the target resource.
+`.` or `..` segment are rejected before URL normalization can change the target resource. Route
+templates reject static C0 controls (U+0000–U+001F) and leading/trailing ASCII spaces before
+interpolation; interior spaces and explicitly percent-encoded characters remain supported. Parameter
+values are still URI-encoded, so a tab inside a parameter is data rather than static URL whitespace.
 
 To read a streaming response, use `.send()` and consume `response.native.body` directly. The JSON,
 text, schema, result, and download terminals buffer or parse a cloned response body.
@@ -108,6 +111,10 @@ and assume preview output will remove them. `.curl({ redacted: false })` explici
 headers and URLs and should be treated as sensitive output.
 
 Buffered terminal transport failures use the same `AvirxError` and error hooks as fetch failures.
-Request-hook failures are normalized as request failures and run error hooks. Errors thrown by
-response, retry, or error hooks propagate directly. `.result()` is not a universal catch-all for
-external callbacks or contract input validation.
+Request-hook failures are normalized as request failures and run error hooks. Throwing terminals
+propagate response/retry/error-hook exceptions unchanged. `.result()` converts an `AvirxError`
+escaping request execution to `ok: false`, including one thrown by a response/retry hook or an error
+hook handling a transport failure. A nested callback request can therefore supply the returned
+error's request metadata. Error-hook exceptions during final status handling or body parsing/validation
+reject, including `AvirxError`; other response/retry/error-hook exceptions also reject. Contract input
+validation remains preflight and rejects. See [hooks](./policies.md#hooks) for the same boundary.

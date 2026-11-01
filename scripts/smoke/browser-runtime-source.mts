@@ -1,11 +1,12 @@
 import { browserAssertionsSource } from './browser-assertions-source.mts';
+import { browserCorsSource } from './browser-cors-source.mts';
 import { browserNativeSource } from './browser-native-source.mts';
 
 export const browserRuntimeSource = `import { avirx, endpoint } from "/avirx.js";
 ${browserAssertionsSource}
+${browserCorsSource}
 ${browserNativeSource}
 document.body.dataset.smokeStatus = "running";
-
 try {
   await runSmoke();
   document.body.dataset.smokeStatus = "passed";
@@ -19,7 +20,6 @@ await runNativeSmoke();
 for (const name of ["fetch", "Headers", "Request", "Response", "URL", "FormData", "Blob"]) {
   equal(typeof globalThis[name], "function", \`Expected browser Web API global \${name}\`);
 }
-
 const seen = [];
 const previousFetch = globalThis.fetch;
 globalThis.fetch = async (input, init = {}) => {

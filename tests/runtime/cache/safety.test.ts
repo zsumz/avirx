@@ -38,6 +38,35 @@ describe('cache public-data boundary', () => {
         expect(fetchImpl).toHaveBeenCalledTimes(2);
     });
 
+    it.each([undefined, 'accept'])(
+        'does not reuse CORS responses with visible Vary %s', async (vary) => {
+            let version = 'first';
+            const fetchImpl = vi.fn<typeof fetch>(async () => {
+                const response = publicResponse(version, vary === undefined ? {} : { headers: { vary } });
+                Object.defineProperty(response, 'type', { value: 'cors' });
+                return Promise.resolve(response);
+            });
+            const client = avirx(baseUrl, { fetch: fetchImpl }).cache({ ttl: '1s' });
+            expect(await client.get('/catalog').text()).toBe('first');
+            version = 'second';
+            expect(await client.get('/catalog').text()).toBe('second');
+            expect(fetchImpl).toHaveBeenCalledTimes(2);
+            expect(client.state.cache?.size()).toBe(0);
+        },
+    );
+
+    it.each(['basic', 'default'] as const)('caches unfiltered native response type %s', async (type) => {
+        const fetchImpl = vi.fn<typeof fetch>(async () => {
+            const response = publicResponse('ok');
+            Object.defineProperty(response, 'type', { value: type });
+            return Promise.resolve(response);
+        });
+        const client = avirx(baseUrl, { fetch: fetchImpl }).cache({ ttl: '1s' });
+        await client.get('/catalog').text();
+        await client.get('/catalog').text();
+        expect(fetchImpl).toHaveBeenCalledOnce();
+    });
+
     it('rejects Vary:* even if the configured vary list contains a wildcard', async () => {
         const fetchImpl = vi.fn<typeof fetch>(async () => Promise.resolve(publicResponse('ok', {
             headers: { vary: '*' },

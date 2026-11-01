@@ -15,7 +15,7 @@ export function formatCurl(request: AvirxBuiltRequest, options: AvirxCurlOptions
     const comments: string[] = [];
 
     for (const [name, value] of sortedHeaders(headers)) {
-        parts.push(`  -H ${quoteShell(`${name}: ${value}`)}`);
+        parts.push(`  -H ${quoteShell(value === '' ? `${name};` : `${name}: ${value}`)}`);
     }
 
     if (typeof body === 'string' && body.includes('\0')) {

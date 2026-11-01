@@ -9,7 +9,7 @@ CommonJS `require()` and deep imports into `dist` or `src` are not supported.
 | --- | --- |
 | Node.js | Minimum 18.17; installed-package compatibility at that floor, full CI on Node 22/24/26. Supporting an old runtime does not imply its upstream security support. |
 | TypeScript | Minimum 5.0.4; packed consumer fixtures compile with 5.0.4 and the repository's 5.9.3 compiler. Strict mode and DOM declarations are required for Web API types. |
-| Browsers | Modern Web APIs including native `AbortSignal.any`; real Chromium tests cover package loading, native fetch, cookie privacy, public caching, streaming, and composed cancellation. Firefox/WebKit have no dedicated CI gate. |
+| Browsers | Modern Web APIs including native `AbortSignal.any`; real Chromium tests cover package loading, native fetch, cookie privacy, cross-origin cache bypass, public caching, streaming, and composed cancellation. Firefox/WebKit have no dedicated CI gate. |
 | Other runtimes | Best effort when they provide compatible fetch, URL, Request, Response, Headers, Blob, FormData, ReadableStream, AbortController and AbortSignal.any. |
 
 Native `AbortSignal.any` keeps cancellation attached to native response bodies without manually
@@ -48,14 +48,18 @@ module layout, function source text, timing measurements and stack traces are no
 This stabilization candidate is pre-v1 and deliberately corrects these behaviors:
 
 - Caching requires server `Cache-Control: public`, respects privacy exclusions, has finite storage
-  budgets and explicit invalidation. `.send()` does not write a body cache entry.
+  budgets and explicit invalidation. Only unfiltered `basic`/`default` responses are cacheable;
+  browser CORS responses bypass caching even when `Vary` is exposed. `.send()` does not write a
+  body cache entry. Missing and explicitly empty vary fields have different keys.
 - Hooks run before admission; concurrency precedes rate admission immediately before dispatch.
   Fetch timeout starts at dispatch and ends at headers. Signals cancel response bodies too.
-- Dot-segment path parameters reject; reserved object names are preserved as data.
+- Dot-segment path parameters reject. Route templates with static C0 controls or leading/trailing
+  ASCII spaces reject before URL normalization. Reserved object names are preserved as data.
 - Mutable inspection values are independent snapshots; nested query arrays are frozen.
 - Built requests carry required `authenticated` metadata for safe cache eligibility.
 - HEAD JSON/contract results are `undefined` unless an explicit schema transforms that value.
 - Async schemas are awaited, and contract input/output inference follows the documented parser rules.
-- cURL uses literal inline data with effective content type; unrepresentable NUL bodies are omitted.
+- cURL uses literal inline data with effective content type and preserves explicitly empty headers;
+  unrepresentable NUL bodies are omitted.
 
 See [the acceptance checklist](./v1-stabilization.md) for each review finding and its regression.

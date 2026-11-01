@@ -59,3 +59,20 @@ The draft PR records completion and exact-head results for these acceptance chec
 
 Release candidates must retain these regressions and the existing Node18.17/22/24/26 gates.
 An actual release still requires separate human review; this work opens a draft PR only.
+
+## Fresh-review follow-up
+
+All four residual P2 findings from the review of `20c2c6c766133db30a9f1cf2bd7928edc22c029c`
+are addressed in this follow-up. Their focused regressions failed before the product changes.
+
+| Finding | Disposition and regression |
+| --- | --- |
+| R1: CORS hides Vary | Explicit basic/default-only response eligibility; native Chromium uses two origins and checks hidden and exposed Vary responses never enter the cache. Same-origin caching remains covered. |
+| R2: Missing/empty vary collision | Missing values use a distinct key sentinel; consumer tests request absent and empty fields against different public representations. |
+| R3: Whitespace bypasses dot guard | Reject static C0 controls and leading/trailing ASCII spaces before interpolation; relative/absolute templates reject through inspection and execution without dispatch. Safe interior/encoded data remains covered. |
+| R4: cURL removes empty headers | Semicolon syntax preserves empty headers; real HTTP compares body bytes and content-type/x-empty/accept/user-agent presence against native fetch. |
+
+The hook-error documentation now describes the existing `.result()` execution-catch boundary;
+`failure/result-hook-errors.test.ts` covers nested request errors and error hooks at each phase.
+This clarification changes no runtime API or error behavior. Cross-origin browser cache bypass and
+route-template rejection are deliberate pre-v1 compatibility changes, documented in the guides.
