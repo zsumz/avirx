@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { avirx } from 'avirx';
 
 describe('HTTP method builders', () => {
-    it('serializes plain object bodies to JSON and sets content type when absent', () => {
+    it('serializes plain object bodies to JSON and infers content type at build', async () => {
         const builder = avirx('https://api.example.com').post('/events').body({ ok: true });
 
         expect(builder.state.body).toBe('{"ok":true}');
@@ -11,7 +11,8 @@ describe('HTTP method builders', () => {
             contentType: 'application/json',
             kind: 'json',
         });
-        expect(builder.state.headers).toEqual({ 'content-type': 'application/json' });
+        expect(builder.state.headers).toEqual({});
+        expect((await builder.build()).headers['content-type']).toBe('application/json');
     });
 
     it('respects explicit request content type for JSON bodies', () => {

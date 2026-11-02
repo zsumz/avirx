@@ -20,6 +20,7 @@ export async function handleHttpTestRequest(
         headers: incoming.headers,
         method,
         rawBody: await readBody(incoming),
+        rawHeaders: Object.freeze([...incoming.rawHeaders]),
         receivedAt: Date.now(),
         url,
     });

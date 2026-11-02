@@ -42,15 +42,31 @@ describe('fetch execution', () => {
     });
 
     it('lets request-level timeout disable client timeout', async () => {
-        const fetchImpl = vi.fn<typeof fetch>(async () => Promise.resolve(new Response('ok')));
+        vi.useFakeTimers();
+        const fetchImpl = vi.fn<typeof fetch>(async (_input, init) =>
+            new Promise<Response>((resolve, reject) => {
+                const timer = setTimeout(() => {
+                    resolve(new Response('delayed response'));
+                }, 25);
+                init?.signal?.addEventListener('abort', () => {
+                    clearTimeout(timer);
+                    reject(new DOMException('Aborted', 'AbortError'));
+                }, { once: true });
+            }),
+        );
 
-        await avirx('https://api.example.com', { fetch: fetchImpl })
+        const pending = avirx('https://api.example.com', { fetch: fetchImpl })
             .timeout('1ms')
-            .get('/fast')
+            .get('/slow')
             .timeout(false)
             .send();
 
+        await vi.advanceTimersByTimeAsync(25);
+        const response = await pending;
+
+        await expect(response.native.text()).resolves.toBe('delayed response');
+        expect(response.request.timeoutMs).toBeUndefined();
         const init = fetchImpl.mock.calls[0]?.[1];
-        expect(init?.signal).toBeUndefined();
+        expect(init?.signal?.aborted).toBe(false);
     });
 });

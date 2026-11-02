@@ -13,23 +13,11 @@ import type {
 import type { AvirxRetryInput, AvirxRetryMetadata } from './retry.js';
 import type { AvirxDownload, AvirxResponse, AvirxResult } from './response.js';
 import type { AvirxInferSchema, AvirxSchema } from './schema.js';
+import type { AvirxExactPathParams, AvirxPathParamNames, AvirxPathParams } from './path.js';
+
+export type { AvirxPathParamNames, AvirxPathParams } from './path.js';
 
 export type AvirxRequestTimeoutInput = AvirxDurationInput | false;
-
-export type AvirxPathParamNames<Route extends string> =
-    Route extends `${string}{${infer Param}}${infer Rest}`
-        ? Param | AvirxPathParamNames<Rest>
-        : never;
-
-export type AvirxPathParams<Route extends string> =
-    [AvirxPathParamNames<Route>] extends [never]
-        ? Readonly<Record<string, never>>
-        : Readonly<Record<AvirxPathParamNames<Route>, AvirxPrimitiveValue>>;
-
-type AvirxExactPathParams<
-    Route extends string,
-    Params extends Readonly<Record<string, unknown>>,
-> = Params & Readonly<Record<Exclude<keyof Params, AvirxPathParamNames<Route>>, never>>;
 
 export type AvirxQueryValue =
   | AvirxPrimitiveValue
@@ -40,6 +28,7 @@ export type AvirxQueryValue =
 export type AvirxQueryInput = URLSearchParams | Readonly<Record<string, AvirxQueryValue>>;
 
 export type AvirxBuiltRequest = Readonly<{
+    authenticated: boolean;
     body?: AvirxBodyValue;
     bodyMetadata: AvirxBodyMetadata;
     headers: AvirxHeaders;
@@ -66,7 +55,7 @@ export type AvirxPreview = Readonly<{
 
 export type AvirxRequestBuilder<
     Route extends string = string,
-    CanHaveBody extends boolean = true,
+    CanHaveBody extends boolean = boolean,
     ErrorData = unknown,
 > = Readonly<{
     as<Schema extends AvirxSchema<unknown>>(schema: Schema): Promise<AvirxInferSchema<Schema>>;
@@ -97,7 +86,7 @@ export type AvirxRequestBuilder<
     timeout(duration: AvirxRequestTimeoutInput): AvirxRequestBuilder<Route, CanHaveBody, ErrorData>;
 }> &
   ([AvirxPathParamNames<Route>] extends [never]
-      ? Readonly<Record<string, never>>
+      ? unknown
       : Readonly<{
           path<const Params extends AvirxPathParams<Route>>(
               params: AvirxExactPathParams<Route, Params>,
@@ -108,7 +97,7 @@ export type AvirxRequestBuilder<
           body(body: AvirxBodyValue): AvirxRequestBuilder<Route, CanHaveBody, ErrorData>;
           multipart(): AvirxMultipartBuilder<Route, ErrorData>;
       }>
-      : Readonly<Record<string, never>>);
+      : unknown);
 
 export type AvirxMultipartBuilder<
     Route extends string = string,

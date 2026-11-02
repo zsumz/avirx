@@ -12,7 +12,7 @@ export function createContractCall<Endpoint extends AvirxAnyEndpointDefinition>(
     definition: Endpoint,
 ): AvirxContractCall<Endpoint> {
     const call = async (input: AvirxContractInput<Endpoint>): Promise<unknown> => {
-        const request = prepareContractRequest(clientState, definition, input);
+        const request = await prepareContractRequest(clientState, definition, input);
         const responseSchema = definition.state.responseSchema;
         return responseSchema ? request.as(responseSchema) : request.json();
     };
@@ -20,7 +20,7 @@ export function createContractCall<Endpoint extends AvirxAnyEndpointDefinition>(
     return Object.freeze(
         Object.assign(call, {
             async result(input: AvirxContractInput<Endpoint>): Promise<AvirxResult<unknown>> {
-                const request = prepareContractRequest(clientState, definition, input);
+                const request = await prepareContractRequest(clientState, definition, input);
                 return request.result(definition.state.responseSchema);
             },
         }),

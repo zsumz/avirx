@@ -44,6 +44,6 @@ client.get('/users/{id}').path(extraVariableParams);
 client.get('/workspaces/{workspaceId}/books/{bookId}').path(extraMultiParamVariable);
 
 // @ts-expect-error Routes without params do not expose .path().
-client.get('/users').path({});
+void client.get('/users').path;
 
 void paramName;

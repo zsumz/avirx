@@ -5,15 +5,11 @@ export function normalizeQuery(input: AvirxQueryInput): Readonly<Record<string, 
         return normalizeSearchParams(input);
     }
 
-    const normalized: Record<string, AvirxQueryValue> = {};
-    for (const [key, value] of Object.entries(input)) {
-        if (value === null || value === undefined) {
-            continue;
-        }
-        normalized[key] = isQueryArray(value) ? [...value] : value;
-    }
-
-    return Object.freeze(normalized);
+    return Object.freeze(Object.fromEntries(
+        Object.entries(input)
+            .filter(([, value]) => value !== null && value !== undefined)
+            .map(([key, value]) => [key, isQueryArray(value) ? Object.freeze([...value]) : value]),
+    ));
 }
 
 export function serializeQuery(input: AvirxQueryInput): URLSearchParams {
@@ -60,24 +56,14 @@ function appendQueryValue(params: URLSearchParams, key: string, value: AvirxQuer
 }
 
 function normalizeSearchParams(params: URLSearchParams): Readonly<Record<string, AvirxQueryValue>> {
-    const normalized: Record<string, AvirxQueryValue> = {};
-
+    const normalized: Map<string, AvirxQueryValue> = new Map();
     params.forEach((value, key) => {
-        const existing = normalized[key];
-        if (existing === undefined) {
-            normalized[key] = value;
-            return;
-        }
-
-        if (existing === null) {
-            normalized[key] = value;
-            return;
-        }
-
-        normalized[key] = isQueryArray(existing) ? [...existing, value] : [existing, value];
+        const existing = normalized.get(key);
+        normalized.set(key, existing === undefined || existing === null
+            ? value
+            : isQueryArray(existing) ? [...existing, value] : [existing, value]);
     });
-
-    return Object.freeze(normalized);
+    return normalizeQuery(Object.fromEntries(normalized));
 }
 
 function stringifyQueryPrimitive(value: AvirxPrimitiveValue): string {

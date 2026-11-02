@@ -2,12 +2,16 @@ import { normalizeDurationMs } from '../../time/duration.js';
 import { isSensitiveHeader } from '../../transport/redact.js';
 import type { AvirxCacheInput, AvirxCacheMethod } from '../../types.js';
 
+const DEFAULT_MAX_ENTRIES = 128;
+const DEFAULT_MAX_TOTAL_BYTES = 16 * 1024 * 1024;
 const DEFAULT_METHODS: readonly AvirxCacheMethod[] = ['GET'];
 const DEFAULT_VARY: readonly string[] = ['accept'];
 const CACHEABLE_METHODS: Set<AvirxCacheMethod> = new Set(['GET', 'HEAD']);
 
 export type NormalizedCacheOptions = Readonly<{
     maxBytes?: number;
+    maxEntries: number;
+    maxTotalBytes: number;
     methods: ReadonlySet<AvirxCacheMethod>;
     ttlMs: number;
     vary: readonly string[];
@@ -16,6 +20,8 @@ export type NormalizedCacheOptions = Readonly<{
 export function normalizeCacheOptions(input: AvirxCacheInput): NormalizedCacheOptions {
     return Object.freeze({
         ...normalizeCacheMaxBytes(input.maxBytes),
+        maxEntries: normalizeCacheLimit(input.maxEntries ?? DEFAULT_MAX_ENTRIES, 'maxEntries', 1),
+        maxTotalBytes: normalizeCacheLimit(input.maxTotalBytes ?? DEFAULT_MAX_TOTAL_BYTES, 'maxTotalBytes', 0),
         methods: normalizeCacheMethods(input.methods),
         ttlMs: normalizeCacheTtl(input.ttl),
         vary: normalizeVaryHeaders(input.vary),
@@ -41,6 +47,13 @@ function normalizeCacheMaxBytes(input: AvirxCacheInput['maxBytes']): { maxBytes?
     }
 
     return { maxBytes: input };
+}
+
+function normalizeCacheLimit(value: number, name: string, minimum: number): number {
+    if (!Number.isSafeInteger(value) || value < minimum) {
+        throw new TypeError(`Cache ${name} must be a safe integer of at least ${String(minimum)}.`);
+    }
+    return value;
 }
 
 function normalizeCacheMethods(input: AvirxCacheInput['methods']): ReadonlySet<AvirxCacheMethod> {

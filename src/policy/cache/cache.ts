@@ -1,3 +1,5 @@
+import { forbidsCache, hasConditionalHeaders, isPublicCacheResponse } from './eligibility.js';
+import { registerCachePolicy } from './invalidation.js';
 import { hasSensitiveHeaders } from './keys.js';
 import { createCacheStore } from './store.js';
 import { isWithinKnownMaxBytes } from './response.js';
@@ -25,17 +27,20 @@ export function createCachePolicy(input: AvirxCacheInput): AvirxCachePolicy {
     }
 
     function canCacheRequest(request: AvirxBuiltRequest): boolean {
-        return options.methods.has(request.method as AvirxCacheMethod)
+        return !request.authenticated && !forbidsCache(request.headers) && !hasConditionalHeaders(request.headers)
+      && options.methods.has(request.method as AvirxCacheMethod)
       && request.sensitiveHeaders.length === 0
       && !hasSensitiveHeaders(request.headers)
       && request.url.href === request.redactedUrl.href;
     }
 
     function canCacheResponse(response: AvirxResponse): boolean {
-        return response.ok && isWithinKnownMaxBytes(response, options.maxBytes);
+        return isPublicCacheResponse(response, options.vary)
+          && isWithinKnownMaxBytes(response, options.maxBytes);
     }
 
     const policy = {
+        clear: store.clear,
         async set(request, response) {
             if (!canCacheRequest(request) || !canCacheResponse(response)) {
                 return;
@@ -46,16 +51,20 @@ export function createCachePolicy(input: AvirxCacheInput): AvirxCachePolicy {
         canCacheRequest,
         canCacheResponse,
         get,
+        maxEntries: options.maxEntries,
+        maxTotalBytes: options.maxTotalBytes,
         size() {
             return store.size();
         },
         ttlMs: options.ttlMs,
     } satisfies Omit<AvirxCachePolicy, 'maxBytes'>;
 
-    return Object.freeze(options.maxBytes === undefined
+    const cache = Object.freeze(options.maxBytes === undefined
         ? policy
         : {
             ...policy,
             maxBytes: options.maxBytes,
         });
+    registerCachePolicy(cache, store.generation);
+    return cache;
 }

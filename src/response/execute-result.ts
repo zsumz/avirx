@@ -63,7 +63,7 @@ async function parseResultData(
     const data = await readTerminalJson(response);
     if (!schema) return data;
     try {
-        return parseWithSchema(schema, data);
+        return await parseWithSchema(schema, data);
     } catch (cause) {
         throw createValidationError(response, data, cause);
     }
@@ -79,6 +79,7 @@ async function handleResultError<ErrorData>(
         ? cause
         : new AvirxError('Result processing failed.', {
             cause,
+            kind: 'decode',
             request: response.request,
             response,
             status: response.status,

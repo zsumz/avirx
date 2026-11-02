@@ -20,7 +20,6 @@ export function createRequestInput<
         body(body: AvirxBodyValue) {
             rejectBodylessMethod(context.state.method, 'body');
             const state = prepareBodyState(
-                context.clientState.headers,
                 context.state,
                 body,
             );
@@ -30,7 +29,7 @@ export function createRequestInput<
             rejectBodylessMethod(context.state.method, 'multipart body');
             const state = forkRequestState(
                 context.state,
-                prepareBodyState(context.clientState.headers, context.state, new FormData()),
+                prepareBodyState(context.state, new FormData()),
             );
             return createMultipartBuilder<Route, ErrorData>(
                 context.clientState,

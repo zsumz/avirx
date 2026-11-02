@@ -43,7 +43,12 @@ import { avirx } from 'avirx';
 
 const Book = {
     parse(input: unknown): { id: string; title: string } {
-        return input as { id: string; title: string };
+        if (typeof input !== 'object' || input === null) throw new Error('Expected a book.');
+        const value = input as Record<string, unknown>;
+        if (typeof value.id !== 'string' || typeof value.title !== 'string') {
+            throw new Error('Expected a book id and title.');
+        }
+        return { id: value.id, title: value.title };
     },
 };
 
@@ -90,10 +95,13 @@ if (!result.ok) {
 ## Runtime
 
 Avirx requires Node.js 18.17 or newer, or any runtime with compatible fetch,
-Request, Response, Headers, Blob, FormData, and AbortController APIs.
+Request, Response, Headers, Blob, FormData, ReadableStream, performance.now(), and AbortSignal.any APIs.
+The package is ESM-only; TypeScript consumers require TypeScript 5.0.4 or newer.
 
 ## Guides
 
+- [API and contracts](https://github.com/zsumz/avirx/blob/main/docs/api.md)
+- [Compatibility and v1 promises](https://github.com/zsumz/avirx/blob/main/docs/compatibility.md)
 - [Runtime behavior](https://github.com/zsumz/avirx/blob/main/docs/runtime.md)
 - [Policies](https://github.com/zsumz/avirx/blob/main/docs/policies.md)
 - [Comparison](https://github.com/zsumz/avirx/blob/main/COMPARISON.md)

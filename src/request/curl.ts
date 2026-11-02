@@ -2,19 +2,28 @@ import type { AvirxBuiltRequest, AvirxCurlOptions, AvirxHeaders } from '../types
 
 export function formatCurl(request: AvirxBuiltRequest, options: AvirxCurlOptions = {}): string {
     const redacted = options.redacted !== false;
-    const headers = redacted ? request.redactedHeaders : request.headers;
+    const headers = { ...redacted ? request.redactedHeaders : request.headers };
+    const body = request.body;
+    if ((typeof body === 'string' || body instanceof URLSearchParams)
+        && headers['content-type'] === undefined && request.bodyMetadata.contentType) {
+        headers['content-type'] = request.bodyMetadata.contentType;
+    }
     const url = redacted ? request.redactedUrl : request.url;
-    const parts = [`curl -X ${request.method} ${quoteShell(url.href)}`];
+    const method = request.method === 'HEAD' ? '--head' : `-X ${request.method}`;
+    const globoff = ['[', ']', '{', '}'].some((character) => url.href.includes(character)) ? ' --globoff' : '';
+    const parts = [`curl${globoff} ${method} ${quoteShell(url.href)}`];
     const comments: string[] = [];
 
     for (const [name, value] of sortedHeaders(headers)) {
-        parts.push(`  -H ${quoteShell(`${name}: ${value}`)}`);
+        parts.push(`  -H ${quoteShell(value === '' ? `${name};` : `${name}: ${value}`)}`);
     }
 
-    if (typeof request.body === 'string') {
-        parts.push(`  -d ${quoteShell(request.body)}`);
-    } else if (request.body instanceof URLSearchParams) {
-        parts.push(`  -d ${quoteShell(request.body.toString())}`);
+    if (typeof body === 'string' && body.includes('\0')) {
+        comments.push('# Avirx omitted a text body containing NUL because shell arguments cannot represent it.');
+    } else if (typeof body === 'string') {
+        parts.push(`  --data-raw ${quoteShell(body)}`);
+    } else if (body instanceof URLSearchParams) {
+        parts.push(`  --data-raw ${quoteShell(body.toString())}`);
     } else if ('body' in request && request.body !== null && request.body !== undefined) {
         comments.push(formatBodyOmissionComment(request));
     }

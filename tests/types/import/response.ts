@@ -4,6 +4,7 @@ import {
     isAvirxError,
     parseWithSchema,
     type AvirxBuiltRequest,
+    type AvirxErrorKind,
     type AvirxHeaders,
     type AvirxInferSchema,
     type AvirxResponse,
@@ -24,6 +25,7 @@ const timing: AvirxTimingMetadata = { durationMs: 10 };
 const retry: AvirxRetryMetadata = { attempts: 2, on: [503], safeOnly: true };
 const retryEvent: AvirxRetryEvent = { attempt: 1, delayMs: 10, status: 503 };
 const request: AvirxBuiltRequest = {
+    authenticated: false,
     bodyMetadata: { kind: 'none' },
     headers,
     method,
@@ -47,9 +49,11 @@ const response: AvirxResponse<string> = {
 const result: AvirxResult<string> = { data: 'ok', ok: true, response, status: 200 };
 const formattedCurl: string = formatCurl(request);
 const error = new AvirxError('boom', { request });
+const kind: AvirxErrorKind = error.kind;
 
 isAvirxError(error);
 void parsedSchema;
 void retryEvent;
 void result;
 void formattedCurl;
+void kind;

@@ -27,6 +27,9 @@ function copyPublicClientState(
     snapshot: PublicClientStateSnapshot,
     state: MutableClientState,
 ): void {
+    if (state.allowCredentialRedirects !== undefined) {
+        snapshot.allowCredentialRedirects = state.allowCredentialRedirects;
+    }
     if (state.auth) snapshot.auth = createPublicAuthState(state.auth);
     if (state.cache) snapshot.cache = state.cache;
     if (state.concurrency) snapshot.concurrency = state.concurrency;

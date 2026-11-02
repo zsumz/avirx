@@ -48,6 +48,17 @@
     }
   },
   "types": "./dist/index.d.ts",
+  "overrides": {
+    "@eslint/config-array": {
+      "minimatch": "11.0.1"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "11.0.1"
+    },
+    "eslint": {
+      "minimatch": "11.0.1"
+    }
+  },
   "scripts": {
     "architecture:check": "tsx scripts/architecture/check.mts",
     "browser:install": "playwright install --only-shell chromium",
@@ -57,7 +68,7 @@
     "check:code": "npm run typecheck && npm run lint && npm run architecture:check",
     "precheck:package": "npm run browser:install",
     "check:package": "npm run build && npm run smoke:package && npm run smoke:browser",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "node node_modules/typescript/bin/tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint .",
@@ -68,15 +79,16 @@
     "smoke:package": "tsx scripts/package-smoke.mts"
   },
   "devDependencies": {
-    "@types/node": "^24.0.3",
-    "@vitest/coverage-v8": "^4.1.8",
-    "esbuild": "^0.28.1",
-    "eslint": "^10.6.0",
+    "@types/node": "^24.19.2",
+    "@vitest/coverage-v8": "^4.1.12",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.14.0",
     "eslint-config-rubric": "^0.1.0-alpha.0",
     "playwright": "1.62.1",
-    "tsx": "^4.22.4",
+    "tsx": "^4.23.15",
     "typescript": "5.9.3",
-    "vitest": "^4.1.8",
-    "zod": "^4.4.3"
+    "typescript-minimum": "npm:typescript@5.0.4",
+    "vitest": "^4.1.12",
+    "zod": "^4.6.7"
   }
 }

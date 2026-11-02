@@ -79,7 +79,7 @@ describe('HTTP method builders', () => {
                 '  -H \'authorization: [redacted]\'',
                 '  -H \'content-type: application/json\'',
                 '  -H \'x-request: req_123\'',
-                '  -d \'{"ok":true}\'',
+                '  --data-raw \'{"ok":true}\'',
             ].join(' \\\n'),
         );
     });

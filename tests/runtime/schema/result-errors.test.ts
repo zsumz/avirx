@@ -32,6 +32,7 @@ describe('schema adapter', () => {
         expect(result.response?.status).toBe(200);
         expect(result.error).toMatchObject({
             cause,
+            kind: 'validation',
             message: 'Response validation failed.',
             status: 200,
         });
@@ -52,6 +53,7 @@ describe('schema adapter', () => {
         expect(result.response).toBeUndefined();
         expect(result.error).toMatchObject({
             cause,
+            kind: 'network',
             message: 'Request failed.',
         });
     });

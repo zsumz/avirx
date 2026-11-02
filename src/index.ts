@@ -31,6 +31,7 @@ export type {
     AvirxEndpointDefinition,
     AvirxEndpointState,
     AvirxExpectedStatusInput,
+    AvirxErrorKind,
     AvirxHeaders,
     AvirxHookContext,
     AvirxHookEvent,

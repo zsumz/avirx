@@ -1,5 +1,6 @@
 import { getRawAuthPolicy } from '../../policy/auth/state-redaction.js';
 import { createReadonlySet, freezeRecord } from '../../state/freeze.js';
+import { normalizeQuery } from '../../transport/query.js';
 import { freezeRequestState } from './freeze-request-state.js';
 import type {
     MutableRequestState,
@@ -16,7 +17,7 @@ export function forkRequestState(
         headers: freezeRecord(patch.headers ?? state.headers),
         method: state.method,
         pathParams: freezeRecord(patch.pathParams ?? state.pathParams),
-        query: freezeRecord(patch.query ?? state.query),
+        query: normalizeQuery(patch.query ?? state.query),
         route: state.route,
     };
     const auth = patch.auth ?? getRawAuthPolicy(state);

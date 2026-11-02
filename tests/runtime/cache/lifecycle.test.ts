@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { avirx, endpoint } from 'avirx';
+import { publicResponse } from '../../helpers/public-response.js';
 
 describe('cache policy', () => {
     afterEach(() => {
@@ -17,9 +18,9 @@ describe('cache policy', () => {
         };
         const fetchImpl = vi
             .fn<typeof fetch>()
-            .mockResolvedValueOnce(new Response('server error', { status: 500 }))
-            .mockResolvedValueOnce(new Response(JSON.stringify({ nope: true })))
-            .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'usr_123' })));
+            .mockResolvedValueOnce(publicResponse('server error', { status: 500 }))
+            .mockResolvedValueOnce(publicResponse(JSON.stringify({ nope: true })))
+            .mockResolvedValueOnce(publicResponse(JSON.stringify({ id: 'usr_123' })));
         const client = avirx('https://api.example.com', { fetch: fetchImpl }).cache({ ttl: '1s' });
 
         const result = await client.get('/users/usr_123').result();
@@ -35,8 +36,8 @@ describe('cache policy', () => {
         vi.setSystemTime(0);
         const fetchImpl = vi
             .fn<typeof fetch>()
-            .mockResolvedValueOnce(new Response('first'))
-            .mockResolvedValueOnce(new Response('second'));
+            .mockResolvedValueOnce(publicResponse('first'))
+            .mockResolvedValueOnce(publicResponse('second'));
         const client = avirx('https://api.example.com', { fetch: fetchImpl }).cache({ ttl: '100ms' });
 
         await expect(client.get('/feature-flags').text()).resolves.toBe('first');
@@ -52,7 +53,7 @@ describe('cache policy', () => {
         vi.useFakeTimers();
         vi.setSystemTime(0);
         const events: string[] = [];
-        const fetchImpl = vi.fn<typeof fetch>(async () => Promise.resolve(new Response('ok')));
+        const fetchImpl = vi.fn<typeof fetch>(async () => Promise.resolve(publicResponse('ok')));
         const client = avirx('https://api.example.com', { fetch: fetchImpl })
             .cache({ ttl: '1s' })
             .rateLimit({ per: '1s', requests: 1 })
@@ -75,7 +76,7 @@ describe('cache policy', () => {
 
     it('caches contract calls through the same policy', async () => {
         const fetchImpl = vi.fn<typeof fetch>(async () =>
-            Promise.resolve(new Response(JSON.stringify({ id: 'usr_123' }))),
+            Promise.resolve(publicResponse(JSON.stringify({ id: 'usr_123' }))),
         );
         const User = {
             parse(input: unknown): { id: string } {

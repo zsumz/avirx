@@ -1,3 +1,4 @@
+import { defineBodySnapshot } from '../../transport/body-state.js';
 import {
     createPublicAuthState,
     rememberRawAuthPolicy,
@@ -28,8 +29,8 @@ function copyPublicRequestState(
     state: MutableRequestState,
 ): void {
     if (state.auth) snapshot.auth = createPublicAuthState(state.auth);
-    if ('body' in state) snapshot.body = state.body;
-    if ('bodyMetadata' in state) snapshot.bodyMetadata = state.bodyMetadata;
+    if ('body' in state) defineBodySnapshot(snapshot, state.body);
+    if (state.bodyMetadata) snapshot.bodyMetadata = Object.freeze({ ...state.bodyMetadata });
     if (state.errorSchema) snapshot.errorSchema = state.errorSchema;
     if (state.hooks) snapshot.hooks = state.hooks;
     if (state.retry) snapshot.retry = state.retry;

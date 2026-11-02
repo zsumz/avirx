@@ -51,6 +51,7 @@ describe('rate-limit policy', () => {
         expect(result.status).toBeUndefined();
         expect(result.response).toBeUndefined();
         expect(result.error.message).toBe('Rate limit queue is full.');
+        expect(result.error.kind).toBe('queue-full');
         expect(result.error.request.url.href).toBe('https://api.example.com/second');
         expect(fetchImpl).toHaveBeenCalledOnce();
         await first;
@@ -80,6 +81,7 @@ describe('rate-limit policy', () => {
             throw new Error('Expected rate-limit timeout result.');
         }
         expect(result.error.message).toBe('Rate limit queue timed out.');
+        expect(result.error.kind).toBe('queue-timeout');
         expect(result.status).toBeUndefined();
         expect(result.response).toBeUndefined();
         expect(client.state.rateLimit?.queued()).toBe(0);

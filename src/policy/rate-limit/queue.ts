@@ -16,50 +16,22 @@ export function createRateLimitQueue(): Readonly<{
     remove(entry: RateLimitQueueEntry): boolean;
     size(): number;
 }> {
-    const queue: Array<RateLimitQueueEntry | undefined> = [];
-    let queueHead = 0;
-    let queued = 0;
-
-    function compactQueue(): void {
-        if (queueHead > 32 && queueHead * 2 >= queue.length) {
-            queue.splice(0, queueHead);
-            queueHead = 0;
-        }
-    }
+    const queue: Set<RateLimitQueueEntry> = new Set();
 
     return Object.freeze({
         dequeue() {
-            while (queueHead < queue.length) {
-                const entry = queue[queueHead];
-                queue[queueHead] = undefined;
-                queueHead += 1;
-                if (entry) {
-                    queued -= 1;
-                    compactQueue();
-                    return entry;
-                }
-            }
-
-            compactQueue();
-            return undefined;
+            const entry = queue.values().next().value;
+            if (entry) queue.delete(entry);
+            return entry;
         },
         enqueue(entry) {
-            queue.push(entry);
-            queued += 1;
+            queue.add(entry);
         },
         remove(entry) {
-            const index = queue.indexOf(entry, queueHead);
-            if (index === -1) {
-                return false;
-            }
-
-            queue[index] = undefined;
-            queued -= 1;
-            compactQueue();
-            return true;
+            return queue.delete(entry);
         },
         size() {
-            return queued;
+            return queue.size;
         },
     });
 }

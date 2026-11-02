@@ -1,3 +1,4 @@
+import { defineBodySnapshot } from '../transport/body-state.js';
 import { buildRequest } from './build-request.js';
 import { formatCurl } from './curl.js';
 import { resolveEffectiveAuth } from './effective-auth.js';
@@ -33,14 +34,14 @@ export function createRequestInspection<
                 curl: formatCurl(built),
                 headers: built.redactedHeaders,
                 method: built.method,
-                redactions: {
+                redactions: Object.freeze({
                     headers: built.redactedHeaders,
                     url: built.redactedUrl.href,
-                },
+                }),
                 url: built.redactedUrl.href,
             };
             if ('body' in built) {
-                preview.body = built.body;
+                defineBodySnapshot(preview, built.body);
             }
             return Object.freeze(preview);
         },

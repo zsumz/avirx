@@ -26,6 +26,7 @@ export type {
 } from './types/concurrency.js';
 export type { AvirxCurlOptions } from './types/curl.js';
 export type { AvirxDurationInput } from './types/duration.js';
+export type { AvirxErrorKind } from './error/avirx-error.js';
 export type {
     AvirxExpectedStatusInput,
     AvirxHeaders,

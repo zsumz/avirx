@@ -17,7 +17,8 @@ describe('HTTP method builders', () => {
         expect(curl).toBe(
             [
                 'curl -X POST \'https://api.example.com/events\'',
-                '  -d \'tag=a&tag=b&q=hello+world\'',
+                '  -H \'content-type: application/x-www-form-urlencoded;charset=UTF-8\'',
+                '  --data-raw \'tag=a&tag=b&q=hello+world\'',
             ].join(' \\\n'),
         );
     });
@@ -31,9 +32,17 @@ describe('HTTP method builders', () => {
         expect(curl).toBe(
             [
                 'curl -X POST \'https://api.example.com/events\'',
-                '  -d \'hello \'\\\'\'world\'\\\'\'\'',
+                '  -H \'content-type: text/plain;charset=UTF-8\'',
+                '  --data-raw \'hello \'\\\'\'world\'\\\'\'\'',
             ].join(' \\\n'),
         );
+    });
+
+    it('documents omitted NUL text rather than emitting an invalid shell argument', async () => {
+        const curl = await avirx('https://api.example.com').post('/').body('a\0b').curl();
+        expect(curl).not.toContain('\0');
+        expect(curl).not.toContain('--data-raw');
+        expect(curl).toContain('omitted a text body containing NUL');
     });
 
     it('documents omitted FormData bodies in curl output', async () => {

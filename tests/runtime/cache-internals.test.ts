@@ -21,7 +21,7 @@ describe('cache internals', () => {
 
     it('stores cloned responses and marks cache hits', async () => {
         const request = createRequest({ accept: 'application/json' });
-        const store = createCacheStore({ ttlMs: 100, vary: ['accept'] });
+        const store = createCacheStore({ maxEntries: 128, maxTotalBytes: 1024, ttlMs: 100, vary: ['accept'] });
 
         await store.set(request, createResponse(request, 'ok'));
 
@@ -39,7 +39,9 @@ describe('cache internals', () => {
 
     it('does not store responses larger than maxBytes after buffering', async () => {
         const request = createRequest({ accept: 'application/json' });
-        const store = createCacheStore({ maxBytes: 1, ttlMs: 100, vary: ['accept'] });
+        const store = createCacheStore({
+            maxBytes: 1, maxEntries: 128, maxTotalBytes: 1024, ttlMs: 100, vary: ['accept'],
+        });
 
         await store.set(request, createResponse(request, 'ok'));
 
@@ -51,6 +53,7 @@ describe('cache internals', () => {
 function createRequest(headers: AvirxBuiltRequest['headers']): AvirxBuiltRequest {
     const url = new URL('https://api.example.com/users');
     return {
+        authenticated: false,
         bodyMetadata: { kind: 'none' },
         headers,
         method: 'GET',

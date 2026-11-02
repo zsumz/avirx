@@ -18,11 +18,8 @@ describe('fetch execution', () => {
         const response = await request.send();
 
         expect(token).toHaveBeenCalledOnce();
-        expect(fetchImpl.mock.calls[0]?.[1]).toMatchObject({
-            headers: {
-                authorization: 'Bearer client-token',
-            },
-        });
+        expect(new Headers(fetchImpl.mock.calls[0]?.[1]?.headers).get('authorization'))
+            .toBe('Bearer client-token');
         expect(response.request.redactedHeaders.authorization).toBe('[redacted]');
     });
 
@@ -34,11 +31,8 @@ describe('fetch execution', () => {
             .get('/users')
             .send();
 
-        expect(fetchImpl.mock.calls[0]?.[1]).toMatchObject({
-            headers: {
-                authorization: 'Bearer async-token',
-            },
-        });
+        expect(new Headers(fetchImpl.mock.calls[0]?.[1]?.headers).get('authorization'))
+            .toBe('Bearer async-token');
     });
 
     it('lets request-level bearer auth override client bearer auth', async () => {
@@ -50,11 +44,8 @@ describe('fetch execution', () => {
             .auth.bearer(() => 'request-token')
             .send();
 
-        expect(fetchImpl.mock.calls[0]?.[1]).toMatchObject({
-            headers: {
-                authorization: 'Bearer request-token',
-            },
-        });
+        expect(new Headers(fetchImpl.mock.calls[0]?.[1]?.headers).get('authorization'))
+            .toBe('Bearer request-token');
     });
 
     it('lets request authorization headers override client bearer auth', async () => {
@@ -66,11 +57,8 @@ describe('fetch execution', () => {
             .header('Authorization', 'Bearer explicit-token')
             .send();
 
-        expect(fetchImpl.mock.calls[0]?.[1]).toMatchObject({
-            headers: {
-                authorization: 'Bearer explicit-token',
-            },
-        });
+        expect(new Headers(fetchImpl.mock.calls[0]?.[1]?.headers).get('authorization'))
+            .toBe('Bearer explicit-token');
     });
 
     it('sets basic authorization headers', async () => {
@@ -81,11 +69,8 @@ describe('fetch execution', () => {
             .get('/users')
             .send();
 
-        expect(fetchImpl.mock.calls[0]?.[1]).toMatchObject({
-            headers: {
-                authorization: 'Basic dXNlcjpwYXNz',
-            },
-        });
+        expect(new Headers(fetchImpl.mock.calls[0]?.[1]?.headers).get('authorization'))
+            .toBe('Basic dXNlcjpwYXNz');
         expect(response.request.redactedHeaders.authorization).toBe('[redacted]');
     });
 });

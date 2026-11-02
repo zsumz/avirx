@@ -13,6 +13,15 @@ import type {
 } from './request.js';
 import type { AvirxInferSchema, AvirxSchema } from './schema.js';
 
+type SchemaInput<Schema extends AvirxSchema<unknown>> =
+    Schema extends { readonly _input: infer Input }
+        ? Input
+        : Parameters<Schema['parse']> extends []
+            ? AvirxInferSchema<Schema>
+            : unknown extends Parameters<Schema['parse']>[0]
+                ? AvirxInferSchema<Schema>
+                : Parameters<Schema['parse']>[0];
+
 export type AvirxContractInput<Endpoint extends AvirxAnyEndpointDefinition> =
     Endpoint extends AvirxEndpointDefinition<
         HttpMethod,
@@ -24,22 +33,22 @@ export type AvirxContractInput<Endpoint extends AvirxAnyEndpointDefinition> =
     >
         ? Readonly<
         (ParamsSchema extends AvirxSchema<unknown>
-            ? { path: AvirxInferSchema<ParamsSchema> }
+            ? { path: SchemaInput<ParamsSchema> }
             : [AvirxPathParamNames<Path>] extends [never]
                 ? { path?: never }
                 : { path: AvirxPathParams<Path> }) &
-          (QuerySchema extends AvirxSchema<AvirxQueryInput>
-              ? { query: AvirxInferSchema<QuerySchema> }
+          (QuerySchema extends AvirxSchema<AvirxQueryInput | PromiseLike<AvirxQueryInput>>
+              ? { query: SchemaInput<QuerySchema> }
               : { query?: never }) &
-          (BodySchema extends AvirxSchema<AvirxBodyValue>
-              ? { body: AvirxInferSchema<BodySchema> }
+          (BodySchema extends AvirxSchema<AvirxBodyValue | PromiseLike<AvirxBodyValue>>
+              ? { body: SchemaInput<BodySchema> }
               : { body?: never })
         >
         : never;
 
 export type AvirxContractOutput<Endpoint extends AvirxAnyEndpointDefinition> =
     Endpoint extends AvirxEndpointDefinition<
-        HttpMethod,
+        infer Method,
         string,
     AvirxSchema<unknown> | undefined,
     AvirxSchema<unknown> | undefined,
@@ -48,7 +57,7 @@ export type AvirxContractOutput<Endpoint extends AvirxAnyEndpointDefinition> =
     >
         ? ResponseSchema extends AvirxSchema<unknown>
             ? AvirxInferSchema<ResponseSchema>
-            : unknown
+            : Method extends 'HEAD' ? undefined : unknown
         : unknown;
 
 export type AvirxContractCall<Endpoint extends AvirxAnyEndpointDefinition> = ((
@@ -58,5 +67,5 @@ export type AvirxContractCall<Endpoint extends AvirxAnyEndpointDefinition> = ((
 }>;
 
 export type AvirxContractClient<Contract extends AvirxEndpointContract> = Readonly<{
-    [Key in keyof Contract]: AvirxContractCall<Contract[Key]>;
-}>;
+    [Key in keyof Contract as Key extends symbol | 'then' ? never : Key]: AvirxContractCall<Contract[Key]>;
+}> & Readonly<{ then?: never }>;

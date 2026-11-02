@@ -1,5 +1,6 @@
 import type { AvirxError } from '../error/avirx-error.js';
 import { mergeHooks, runHooks } from '../policy/hooks/hooks.js';
+import { discardResponse } from './response-disposal.js';
 import type {
     AvirxClientState,
     AvirxHookContext,
@@ -24,11 +25,16 @@ export async function runErrorHooks(
     response?: AvirxResponse,
 ): Promise<void> {
     const values = response ? { error, response } : { error };
-    await runHooks(
-        hooks,
-        'error',
-        createHookContext(response?.request ?? error.request, values),
-    );
+    try {
+        await runHooks(
+            hooks,
+            'error',
+            createHookContext(response?.request ?? error.request, values),
+        );
+    } catch (hookError) {
+        if (response) discardResponse(response.native);
+        throw hookError;
+    }
 }
 
 export function createHookContext(

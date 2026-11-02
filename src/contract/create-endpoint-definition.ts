@@ -20,7 +20,7 @@ export function createEndpointDefinition<
     state: AvirxEndpointState<Method, Path, ParamsSchema, QuerySchema, BodySchema, ResponseSchema>,
 ): AvirxEndpointDefinition<Method, Path, ParamsSchema, QuerySchema, BodySchema, ResponseSchema> {
     const definition = {
-        body<Schema extends AvirxSchema<AvirxBodyValue>>(schema: Schema) {
+        body<Schema extends AvirxSchema<AvirxBodyValue | PromiseLike<AvirxBodyValue>>>(schema: Schema) {
             if (state.method === 'GET' || state.method === 'HEAD') {
                 throw new TypeError(`${state.method} endpoint contracts cannot define a body schema.`);
             }
@@ -36,7 +36,7 @@ export function createEndpointDefinition<
                 >,
             );
         },
-        params<Schema extends AvirxSchema<AvirxPathParams<Path>>>(schema: Schema) {
+        params<Schema extends AvirxSchema<AvirxPathParams<Path> | PromiseLike<AvirxPathParams<Path>>>>(schema: Schema) {
             return createEndpointDefinition(
                 freezeEndpointState({ ...state, paramsSchema: schema }) as AvirxEndpointState<
                     Method,
@@ -48,7 +48,7 @@ export function createEndpointDefinition<
                 >,
             );
         },
-        query<Schema extends AvirxSchema<AvirxQueryInput>>(schema: Schema) {
+        query<Schema extends AvirxSchema<AvirxQueryInput | PromiseLike<AvirxQueryInput>>>(schema: Schema) {
             return createEndpointDefinition(
                 freezeEndpointState({ ...state, querySchema: schema }) as AvirxEndpointState<
                     Method,

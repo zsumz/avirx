@@ -70,10 +70,7 @@ describe('failure-mode torture tests', () => {
                     throw cause;
                 })
                 .send(),
-        ).rejects.toMatchObject({
-            cause,
-            message: 'Request failed.',
-        });
-        expect(errorHook).toHaveBeenCalledOnce();
+        ).rejects.toBe(cause);
+        expect(errorHook).not.toHaveBeenCalled();
     });
 });

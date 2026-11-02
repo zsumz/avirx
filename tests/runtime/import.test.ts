@@ -11,6 +11,7 @@ import {
 } from 'avirx';
 
 const request: AvirxBuiltRequest = {
+    authenticated: false,
     bodyMetadata: { kind: 'none' },
     headers: {},
     method: 'GET',

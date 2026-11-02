@@ -7,6 +7,7 @@ import type { PackedFile } from './pack-metadata.mts';
 import { runtimeSmokeSource } from './package-runtime-source.mts';
 import { serverSmokeSource } from './package-server-source.mts';
 import { typeSmokeSource } from './package-type-source.mts';
+import { boundaryTypeSmokeSource } from './package-boundary-type-source.mts';
 
 type VerificationOptions = Readonly<{
     files: readonly PackedFile[];
@@ -32,6 +33,7 @@ export async function verifyNodePackage(options: VerificationOptions): Promise<v
     runCommand(process.execPath, ['server-runtime.mjs'], { cwd: options.packageDirectory });
 
     await writeFile(join(options.packageDirectory, 'types.ts'), typeSmokeSource, 'utf8');
+    await writeFile(join(options.packageDirectory, 'boundaries.ts'), boundaryTypeSmokeSource, 'utf8');
     await writeJsonFile(join(options.packageDirectory, 'tsconfig.json'), {
         compilerOptions: {
             exactOptionalPropertyTypes: true,
@@ -39,17 +41,20 @@ export async function verifyNodePackage(options: VerificationOptions): Promise<v
             module: 'NodeNext',
             moduleResolution: 'NodeNext',
             noEmit: true,
+            noUncheckedIndexedAccess: false,
             strict: true,
             target: 'ES2022',
             types: [],
         },
-        include: ['types.ts'],
+        include: ['types.ts', 'boundaries.ts'],
     });
 
-    options.log('Verifying TypeScript types from installed artifact');
-    runCommand(
-        process.execPath,
-        [join(options.root, 'node_modules/typescript/bin/tsc'), '-p', 'tsconfig.json', '--pretty', 'false'],
-        { cwd: options.packageDirectory },
-    );
+    for (const compiler of ['typescript-minimum', 'typescript']) {
+        options.log(`Verifying installed declarations with ${compiler}`);
+        runCommand(
+            process.execPath,
+            [join(options.root, 'node_modules', compiler, 'bin/tsc'), '-p', 'tsconfig.json', '--pretty', 'false'],
+            { cwd: options.packageDirectory },
+        );
+    }
 }

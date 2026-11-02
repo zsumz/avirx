@@ -34,17 +34,17 @@ export type AvirxClient = Readonly<{
     cache(input: AvirxCacheInput): AvirxClient;
     concurrency(input: AvirxConcurrencyInput): AvirxClient;
     contract<const Contract extends AvirxEndpointContract>(contract: Contract): AvirxContractClient<Contract>;
-    delete<const Route extends string>(route: Route): AvirxRequestBuilder<Route>;
+    delete<const Route extends string>(route: Route): AvirxRequestBuilder<Route, true>;
     get<const Route extends string>(route: Route): AvirxRequestBuilder<Route, false>;
     head<const Route extends string>(route: Route): AvirxRequestBuilder<Route, false>;
     header(name: string, value: string): AvirxClient;
     headers(headers: HeadersInit | AvirxHeaders): AvirxClient;
     name(name: string): AvirxClient;
     on(event: AvirxHookEvent, handler: AvirxHookHandler): AvirxClient;
-    options<const Route extends string>(route: Route): AvirxRequestBuilder<Route>;
-    patch<const Route extends string>(route: Route): AvirxRequestBuilder<Route>;
-    post<const Route extends string>(route: Route): AvirxRequestBuilder<Route>;
-    put<const Route extends string>(route: Route): AvirxRequestBuilder<Route>;
+    options<const Route extends string>(route: Route): AvirxRequestBuilder<Route, true>;
+    patch<const Route extends string>(route: Route): AvirxRequestBuilder<Route, true>;
+    post<const Route extends string>(route: Route): AvirxRequestBuilder<Route, true>;
+    put<const Route extends string>(route: Route): AvirxRequestBuilder<Route, true>;
     rateLimit(input: AvirxRateLimitInput): AvirxClient;
     retry(input: AvirxRetryInput): AvirxClient;
     signal(signal: AbortSignal): AvirxClient;
@@ -53,10 +53,12 @@ export type AvirxClient = Readonly<{
 }>;
 
 export type AvirxClientOptions = Readonly<{
+    allowCredentialRedirects?: boolean;
     fetch?: typeof fetch;
 }>;
 
 export type AvirxClientState = Readonly<{
+    allowCredentialRedirects?: boolean;
     auth?: AvirxAuthState;
     baseUrl: URL;
     cache?: AvirxCachePolicy;

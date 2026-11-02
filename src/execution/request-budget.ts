@@ -5,8 +5,14 @@ export async function acquireRequestBudget(
     request: AvirxBuiltRequest,
     signal: AbortSignal | undefined,
 ): Promise<() => void> {
-    await clientState.rateLimit?.acquire(request, signal);
-    return clientState.concurrency?.acquire(signal) ?? noop;
+    const release = await clientState.concurrency?.acquire(signal) ?? noop;
+    try {
+        await clientState.rateLimit?.acquire(request, signal);
+        return release;
+    } catch (error) {
+        release();
+        throw error;
+    }
 }
 
 function noop(): void {

@@ -9,6 +9,7 @@ export async function createUnexpectedStatusError<ErrorData>(
 ): Promise<AvirxError<ErrorData>> {
     const message = `Unexpected HTTP status ${String(response.status)}.`;
     const options = {
+        kind: 'http' as const,
         request: response.request,
         response,
         status: response.status,
@@ -21,7 +22,7 @@ export async function createUnexpectedStatusError<ErrorData>(
     try {
         return new AvirxError(message, {
             ...options,
-            data: parseWithSchema(schema, await readJsonBody(response)),
+            data: await parseWithSchema(schema, await readJsonBody(response)),
         });
     } catch (cause) {
         return new AvirxError(message, {
@@ -32,7 +33,7 @@ export async function createUnexpectedStatusError<ErrorData>(
 }
 
 export async function readJsonBody(response: AvirxResponse): Promise<unknown> {
-    if (response.status === 204 || response.status === 205) {
+    if (response.request.method === 'HEAD' || response.status === 204 || response.status === 205) {
         return undefined;
     }
 

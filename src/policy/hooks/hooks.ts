@@ -1,3 +1,4 @@
+import { callCallback } from '../../error/callback-failure.js';
 import type {
     AvirxHookContext,
     AvirxHookEvent,
@@ -44,7 +45,7 @@ export async function runHooks(
     context: AvirxHookContext,
 ): Promise<void> {
     for (const hook of hooks[event]) {
-        await hook(context);
+        await callCallback(async () => hook(context));
     }
 }
 

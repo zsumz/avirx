@@ -1,4 +1,5 @@
 import { createAvirxResponse } from '../../response/create-response.js';
+import { parseContentLength } from '../../response/content-length.js';
 import { normalizeHeaders } from '../../transport/headers.js';
 import type { AvirxBuiltRequest, AvirxHeaders, AvirxResponse } from '../../types.js';
 
@@ -23,7 +24,7 @@ export function createCachedResponse(
     cached: CachedResponse,
     now: number,
 ): AvirxResponse {
-    const body = cached.status === 204 || cached.status === 205
+    const body = request.method === 'HEAD' || cached.status === 204 || cached.status === 205
         ? null
         : cached.body.slice(0);
     const native = new Response(body, {
@@ -32,11 +33,14 @@ export function createCachedResponse(
         statusText: cached.statusText,
     });
 
-    const response = createAvirxResponse(native, request, Object.freeze({
-        durationMs: 0,
-        endedAt: now,
-        startedAt: now,
-    }));
+    const response = Object.freeze({
+        ...createAvirxResponse(native, request, Object.freeze({
+            durationMs: 0,
+            endedAt: now,
+            startedAt: now,
+        })),
+        url: cached.url,
+    });
     cachedResponses.add(response);
     return response;
 }
@@ -48,13 +52,4 @@ export function isWithinKnownMaxBytes(response: AvirxResponse, maxBytes: number 
 
     const contentLength = parseContentLength(response.headers['content-length']);
     return contentLength !== undefined && contentLength <= maxBytes;
-}
-
-function parseContentLength(value: string | undefined): number | undefined {
-    if (value === undefined || !/^\d+$/u.test(value)) {
-        return undefined;
-    }
-
-    const contentLength = Number(value);
-    return Number.isSafeInteger(contentLength) ? contentLength : undefined;
 }

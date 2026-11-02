@@ -41,14 +41,9 @@ describe('HTTP method builders', () => {
 
         await builder.send();
 
-        expect(fetchImpl).toHaveBeenCalledWith(
-            new URL('https://api.example.com/events'),
-            expect.objectContaining({
-                headers: {
-                    'x-request-key': 'request-secret',
-                },
-            }),
-        );
+        expect(fetchImpl.mock.calls[0]?.[0]).toEqual(new URL('https://api.example.com/events'));
+        expect(new Headers(fetchImpl.mock.calls[0]?.[1]?.headers).get('x-request-key'))
+            .toBe('request-secret');
     });
 
     it('forks request-level headers without mutating previous builders', () => {

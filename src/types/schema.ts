@@ -1,6 +1,6 @@
-export interface AvirxSchema<T> {
-    parse(input: unknown): T;
+export interface AvirxSchema<T, Input = unknown> {
+    parse(input: Input): T;
 }
 
 export type AvirxInferSchema<Schema extends AvirxSchema<unknown>> =
-    Schema extends AvirxSchema<infer Output> ? Output : never;
+    Awaited<ReturnType<Schema['parse']>>;

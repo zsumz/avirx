@@ -3,10 +3,10 @@ import { cloneFormData, prepareBodyState } from '../../../src/transport/body-sta
 import { createRequestState } from '../../../src/request/state/request-state.js';
 
 describe('body state utilities', () => {
-    it('serializes JSON bodies and adds content-type only when absent', () => {
+    it('serializes JSON bodies while keeping only explicit headers in state', () => {
         const state = createRequestState('POST', '/events');
 
-        const prepared = prepareBodyState({}, state, { ok: true });
+        const prepared = prepareBodyState(state, { ok: true });
 
         expect(prepared).toEqual({
             body: '{"ok":true}',
@@ -15,13 +15,10 @@ describe('body state utilities', () => {
                 contentType: 'application/json',
                 kind: 'json',
             },
-            headers: {
-                'content-type': 'application/json',
-            },
+            headers: {},
         });
 
-        expect(prepareBodyState({ 'content-type': 'text/plain' }, state, { ok: true }).headers).toEqual({});
-        expect(prepareBodyState({}, {
+        expect(prepareBodyState({
             ...state,
             headers: { 'content-type': 'application/custom+json' },
         }, { ok: true }).headers).toEqual({ 'content-type': 'application/custom+json' });
@@ -34,9 +31,9 @@ describe('body state utilities', () => {
         const data = new FormData();
         data.append('name', 'avatar');
 
-        const preparedParams = prepareBodyState({}, state, params);
-        const preparedBuffer = prepareBodyState({}, state, buffer);
-        const preparedForm = prepareBodyState({}, state, data);
+        const preparedParams = prepareBodyState(state, params);
+        const preparedBuffer = prepareBodyState(state, buffer);
+        const preparedForm = prepareBodyState(state, data);
         params.set('tag', 'changed');
         new Uint8Array(buffer)[0] = 255;
         data.append('extra', 'later');

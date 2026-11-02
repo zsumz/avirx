@@ -26,7 +26,7 @@ export function createMultipartBuilder<Route extends string, ErrorData>(
             data.append(name, String(value));
             return createMultipartBuilder<Route, ErrorData>(
                 clientState,
-                forkRequestState(state, prepareBodyState(clientState.headers, state, data)),
+                forkRequestState(state, prepareBodyState(state, data)),
                 createRequestBuilder,
             );
         },
@@ -39,7 +39,7 @@ export function createMultipartBuilder<Route extends string, ErrorData>(
             }
             return createMultipartBuilder<Route, ErrorData>(
                 clientState,
-                forkRequestState(state, prepareBodyState(clientState.headers, state, data)),
+                forkRequestState(state, prepareBodyState(state, data)),
                 createRequestBuilder,
             );
         },

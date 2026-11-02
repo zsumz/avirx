@@ -24,27 +24,14 @@ export function createAbortScope(signals: ReadonlyArray<AbortSignal | undefined>
         };
     }
 
-    const controller = new AbortController();
-    const abort = (event: Event): void => {
-        const signal = event.target instanceof AbortSignal ? event.target : undefined;
-        controller.abort(signal?.reason);
-    };
-
-    for (const signal of activeSignals) {
-        if (signal.aborted) {
-            controller.abort(signal.reason);
-            break;
-        }
-        signal.addEventListener('abort', abort, { once: true });
+    if (typeof AbortSignal.any !== 'function') {
+        throw new TypeError('Combining request signals requires AbortSignal.any.');
     }
 
+    // Native composition follows the response body lifetime without retaining manual listeners.
     return {
-        cancel() {
-            for (const signal of activeSignals) {
-                signal.removeEventListener('abort', abort);
-            }
-        },
-        signal: controller.signal,
+        cancel: noop,
+        signal: AbortSignal.any(activeSignals),
     };
 }
 
@@ -63,6 +50,7 @@ export function createAbortError(
 ): AvirxError {
     return new AvirxError('Request aborted.', {
         cause: signal?.reason,
+        kind: 'aborted',
         request,
     });
 }
@@ -71,20 +59,6 @@ export function createAbortReasonError(signal: AbortSignal | undefined): Error {
     return signal?.reason instanceof Error
         ? signal.reason
         : new Error('Request aborted.');
-}
-
-export function createRequestFailureMessage(
-    timeoutSignal: AbortSignal | undefined,
-    externalSignal: AbortSignal | undefined,
-): string {
-    if (timeoutSignal?.aborted) {
-        return 'Request timed out.';
-    }
-    if (externalSignal?.aborted) {
-        return 'Request aborted.';
-    }
-
-    return 'Request failed.';
 }
 
 export function createTimeoutSignal(timeoutMs: number | undefined): {
