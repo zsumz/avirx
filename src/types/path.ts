@@ -29,7 +29,10 @@ export type AvirxPathParams<Route extends string> =
         ? Readonly<Record<string, never>>
         : Readonly<Record<AvirxPathParamNames<Route>, AvirxPrimitiveValue>>;
 
+// TS 5.0 intersects inherited Object members into valid keys when the extra-key record is empty.
 export type AvirxExactPathParams<
     Route extends string,
     Params extends Readonly<Record<string, unknown>>,
-> = Params & Readonly<Record<Exclude<keyof Params, AvirxPathParamNames<Route>>, never>>;
+> = Params & (Exclude<keyof Params, AvirxPathParamNames<Route>> extends never
+    ? unknown
+    : Readonly<Record<Exclude<keyof Params, AvirxPathParamNames<Route>>, never>>);
