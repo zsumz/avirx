@@ -8,6 +8,7 @@ import { runtimeSmokeSource } from './package-runtime-source.mts';
 import { serverSmokeSource } from './package-server-source.mts';
 import { typeSmokeSource } from './package-type-source.mts';
 import { boundaryTypeSmokeSource } from './package-boundary-type-source.mts';
+import { reservedPathTypeSmokeSource } from './package-reserved-path-type-source.mts';
 
 type VerificationOptions = Readonly<{
     files: readonly PackedFile[];
@@ -34,6 +35,7 @@ export async function verifyNodePackage(options: VerificationOptions): Promise<v
 
     await writeFile(join(options.packageDirectory, 'types.ts'), typeSmokeSource, 'utf8');
     await writeFile(join(options.packageDirectory, 'boundaries.ts'), boundaryTypeSmokeSource, 'utf8');
+    await writeFile(join(options.packageDirectory, 'reserved-paths.ts'), reservedPathTypeSmokeSource, 'utf8');
     await writeJsonFile(join(options.packageDirectory, 'tsconfig.json'), {
         compilerOptions: {
             exactOptionalPropertyTypes: true,
@@ -46,7 +48,7 @@ export async function verifyNodePackage(options: VerificationOptions): Promise<v
             target: 'ES2022',
             types: [],
         },
-        include: ['types.ts', 'boundaries.ts'],
+        include: ['types.ts', 'boundaries.ts', 'reserved-paths.ts'],
     });
 
     for (const compiler of ['typescript-minimum', 'typescript']) {
